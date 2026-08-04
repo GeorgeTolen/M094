@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>М094 — пробный тест</title>
+<style>
+:root{
+  --bg:#0f1420; --bg2:#151b2b; --card:#1b2233; --card2:#212a3e;
+  --line:#2c3650; --tx:#e8ecf5; --tx2:#9aa6bf; --tx3:#6b7794;
+  --acc:#4f8cff; --acc2:#6ba3ff; --ok:#2fbf71; --okbg:#12341f; --bad:#f2555a; --badbg:#3a1518;
+  --warn:#f0a92c; --r:14px;
+}
+[data-theme="light"]{
+  --bg:#f4f6fb; --bg2:#eaeef7; --card:#ffffff; --card2:#f7f9fd;
+  --line:#dde3ee; --tx:#131824; --tx2:#5a6478; --tx3:#8590a5;
+  --acc:#2f6fe4; --acc2:#1d5bc8; --ok:#1a9e58; --okbg:#e4f7ec; --bad:#d9363e; --badbg:#fde8e9;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);
+  font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:960px;margin:0 auto;padding:20px 16px 80px}
+h1{font-size:26px;margin:0 0 6px;letter-spacing:-.02em}
+h2{font-size:19px;margin:28px 0 12px;letter-spacing:-.01em}
+.sub{color:var(--tx2);font-size:14px;margin:0}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px;flex-wrap:wrap}
+button{font:inherit;cursor:pointer;border:0;border-radius:10px;transition:.14s}
+.btn{background:var(--acc);color:#fff;padding:11px 20px;font-weight:600;font-size:15px}
+.btn:hover{background:var(--acc2)}
+.btn.ghost{background:transparent;color:var(--tx2);border:1px solid var(--line)}
+.btn.ghost:hover{color:var(--tx);border-color:var(--tx3)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.icon{background:var(--card);color:var(--tx2);border:1px solid var(--line);padding:8px 12px;font-size:14px}
+.icon:hover{color:var(--tx)}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+.vcard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;text-align:left;
+  color:var(--tx);display:flex;flex-direction:column;gap:4px}
+.vcard:hover{border-color:var(--acc);transform:translateY(-2px)}
+.vcard b{font-size:17px}
+.vcard span{color:var(--tx2);font-size:13px}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:12px;font-weight:600;background:var(--card2);color:var(--tx2);border:1px solid var(--line)}
+.rules{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;font-size:14px;color:var(--tx2)}
+.rules b{color:var(--tx)}
+.rules ul{margin:8px 0 0;padding-left:20px}
+.rules li{margin:3px 0}
+.modes{display:flex;gap:8px;margin:14px 0 4px;flex-wrap:wrap}
+.chip{background:var(--card);border:1px solid var(--line);color:var(--tx2);padding:8px 14px;border-radius:20px;font-size:14px}
+.chip.on{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+
+/* test */
+.hbar{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 0 12px;margin-bottom:4px;border-bottom:1px solid var(--line)}
+.hrow{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.hinfo{font-size:14px;color:var(--tx2)}
+.hinfo b{color:var(--tx)}
+.bar{height:5px;background:var(--card2);border-radius:9px;margin-top:10px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--acc);border-radius:9px;transition:.25s}
+.qcard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:22px;margin-top:16px}
+.qnum{font-size:13px;color:var(--tx3);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.qtext{font-size:18px;margin:8px 0 4px;white-space:pre-wrap;line-height:1.5}
+.qtext code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.92em}
+.hint{font-size:13px;color:var(--warn);margin:6px 0 0}
+.opts{margin-top:16px;display:flex;flex-direction:column;gap:9px}
+.opt{display:flex;align-items:flex-start;gap:12px;background:var(--card2);border:1.5px solid transparent;border-radius:11px;
+  padding:13px 15px;cursor:pointer;text-align:left;color:var(--tx);width:100%;font-size:15px}
+.opt:hover{border-color:var(--tx3)}
+.opt .k{flex:0 0 26px;height:26px;border-radius:7px;background:var(--bg2);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--tx2)}
+.opt.sel{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 12%,var(--card2))}
+.opt.sel .k{background:var(--acc);border-color:var(--acc);color:#fff}
+.opt.right{border-color:var(--ok);background:var(--okbg)}
+.opt.right .k{background:var(--ok);border-color:var(--ok);color:#fff}
+.opt.wrong{border-color:var(--bad);background:var(--badbg)}
+.opt.wrong .k{background:var(--bad);border-color:var(--bad);color:#fff}
+.opt.lock{cursor:default}
+.opt.lock:hover{border-color:transparent}
+.opt.lock.right:hover{border-color:var(--ok)} .opt.lock.wrong:hover{border-color:var(--bad)}
+.nav{display:flex;justify-content:space-between;gap:10px;margin-top:18px;align-items:center}
+.map{display:flex;flex-wrap:wrap;gap:6px;margin-top:20px}
+.map button{width:34px;height:34px;border-radius:9px;background:var(--card);border:1px solid var(--line);
+  color:var(--tx2);font-size:13px;font-weight:600}
+.map button.done{background:var(--card2);color:var(--tx);border-color:var(--tx3)}
+.map button.cur{background:var(--acc);border-color:var(--acc);color:#fff}
+.map button.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.map button.no{background:var(--bad);border-color:var(--bad);color:#fff}
+
+/* result */
+.score{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:26px;text-align:center}
+.big{font-size:52px;font-weight:800;letter-spacing:-.03em;line-height:1.1}
+.mark{font-size:15px;color:var(--tx2);margin-top:4px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-top:22px}
+.stat{background:var(--card2);border-radius:11px;padding:12px}
+.stat b{display:block;font-size:21px}
+.stat span{font-size:12px;color:var(--tx2)}
+.rev{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;margin-top:10px}
+.rev .hd{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.rev .pt{flex:0 0 auto;font-size:13px;font-weight:700;padding:2px 10px;border-radius:20px}
+.pt.p2{background:var(--okbg);color:var(--ok)} .pt.p1{background:#3a2e12;color:var(--warn)} .pt.p0{background:var(--badbg);color:var(--bad)}
+[data-theme="light"] .pt.p1{background:#fdf1dc}
+.rev .qt{font-size:15px;white-space:pre-wrap;margin:0 0 10px}
+.ans{font-size:14px;margin:3px 0;color:var(--tx2)}
+.ans b{color:var(--tx)}
+.ans .g{color:var(--ok);font-weight:600} .ans .r{color:var(--bad);font-weight:600}
+.note{margin-top:10px;padding:9px 12px;border-radius:9px;background:var(--card2);border-left:3px solid var(--warn);
+  font-size:13px;color:var(--tx2);line-height:1.45}
+.hide{display:none}
+@media(max-width:600px){.wrap{padding:14px 12px 60px}.qcard{padding:16px}.big{font-size:42px}.qtext{font-size:16.5px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ============ HOME ============ -->
+<div id="home">
+  <div class="topbar">
+    <div>
+      <h1>М094 — пробный тест</h1>
+      <p class="sub">База данных · Алгоритмы и структуры данных — 13 вариантов, 320 вопросов</p>
+    </div>
+    <button class="icon" onclick="toggleTheme()" id="thBtn">🌙 Тема</button>
+  </div>
+
+  <div class="rules">
+    <b>Правила подсчёта баллов</b>
+    <ul>
+      <li><b>База данных</b> — 20 вопросов, максимум <b>40 баллов</b>. Может быть один <i>или несколько</i> правильных ответов (не более трёх).
+        <ul>
+          <li>верный ответ один, отметил его один — <b>2 балла</b></li>
+          <li>верный ответ один, отметил несколько — <b>0 баллов</b></li>
+          <li>верных несколько, отметил часть из них (без ошибок) — <b>1 балл</b></li>
+          <li>верных несколько, отметил все — <b>2 балла</b></li>
+          <li>отметил хотя бы один неверный — <b>0 баллов</b></li>
+        </ul>
+      </li>
+      <li><b>Алгоритмы и структуры данных</b> — 30 вопросов, максимум <b>30 баллов</b>: один правильный ответ, <b>1 балл</b> за верный.</li>
+    </ul>
+  </div>
+
+  <div class="modes" style="margin-top:18px">
+    <button class="chip on" id="lRu" onclick="setLang('ru')">🇷🇺 Русский</button>
+    <button class="chip"    id="lKz" onclick="setLang('kz')">🇰🇿 Қазақша</button>
+  </div>
+
+  <div class="modes">
+    <button class="chip on" id="mExam"  onclick="setMode('exam')">Экзамен — ответы в конце</button>
+    <button class="chip"    id="mTrain" onclick="setMode('train')">Тренировка — ответ сразу</button>
+    <button class="chip"    id="mShuf"  onclick="toggleShuffle()">Перемешать вопросы</button>
+  </div>
+
+  <div id="lists"></div>
+
+  <p class="sub" style="margin-top:30px">Вопросы и варианты отсканированы со скриншотов теста. Правильные ответы на скриншотах не отмечены — они проставлены по предмету и могут содержать ошибки.</p>
+</div>
+
+<!-- ============ TEST ============ -->
+<div id="test" class="hide">
+  <div class="hbar">
+    <div class="hrow">
+      <div class="hinfo"><b id="tTitle"></b></div>
+      <div class="hinfo">
+        <span id="tProg"></span> · <span id="tTime">0:00</span>
+        <button class="icon" style="margin-left:8px" onclick="goHome()">Выйти</button>
+      </div>
+    </div>
+    <div class="bar"><i id="tBar" style="width:0%"></i></div>
+  </div>
+
+  <div class="qcard">
+    <div class="qnum" id="qNum"></div>
+    <div class="qtext" id="qText"></div>
+    <div class="hint" id="qHint"></div>
+    <div class="opts" id="qOpts"></div>
+  </div>
+
+  <div class="nav">
+    <button class="btn ghost" id="bPrev" onclick="go(-1)">← Назад</button>
+    <div style="flex:1"></div>
+    <button class="btn ghost" id="bNext" onclick="go(1)">Далее →</button>
+    <button class="btn" id="bFin" onclick="finish()">Завершить</button>
+  </div>
+
+  <div class="map" id="qMap"></div>
+</div>
+
+<!-- ============ RESULT ============ -->
+<div id="res" class="hide">
+  <div class="topbar">
+    <h1 id="rTitle">Результат</h1>
+    <div style="display:flex;gap:8px">
+      <button class="icon" onclick="restart()">↻ Заново</button>
+      <button class="icon" onclick="goHome()">К вариантам</button>
+    </div>
+  </div>
+  <div class="score">
+    <div class="big" id="rScore"></div>
+    <div class="mark" id="rMark"></div>
+    <div class="stats" id="rStats"></div>
+  </div>
+  <h2>Разбор ответов</h2>
+  <div id="rList"></div>
+</div>
+
+</div>
+
+<script>
+const DATA = [
+{
+  "id": "db1", "lang": "ru", "subject": "База данных", "variant": 1,
+  "questions": [
+    {"n":1,"q":"Вид отношения в базе данных между преподавателями и студентами","o":{"A":"0:1","B":"1:1","C":"1:3","D":"1:0","E":"2:1","F":"M:M","G":"2:M","H":"3:1"},"c":["F"]},
+    {"n":2,"q":"Название таблицы из следующего кода\ncreate table calc (x int, y int);\ninsert into calc values (5, 45);\nselect *from calc x, y, x+y;","o":{"A":"values","B":"int","C":"y","D":"calc","E":"*","F":"x","G":"table"},"c":["D"]},
+    {"n":3,"q":"Действие выполняемое следующей функцией sum (sales)","o":{"A":"вывод минимума строки sales","B":"вывод среднего значения столбца sales","C":"вывод среднего значения строки sales","D":"вывод суммы столбца sales","E":"вывод среднего значения переменной sales","F":"вывод среднего значения таблицы sales"},"c":["D"]},
+    {"n":4,"q":"Результат выполнения следующей команды для данной таблицы\nselect salary\nfrom table\nwhere city = 'Almaty'\n\n| name | city | salary |\n| Aigerim | Almaty | 50 |\n| Bauyrzhan | Almaty | 60 |\n| Gulzhan | Arkalyk | 70 |\n| Samat | Moscow | 80 |","o":{"A":"50, 60, 70, 80","B":"60, 70, 80","C":"50, 60","D":"80","E":"70","F":"50"},"c":["C"]},
+    {"n":5,"q":"Правильный синтаксис написания кода на SQL","o":{"A":"select from *data","B":"select data from students","C":"select *data from students","D":"select from data","E":"select *from data","F":"select from students","G":"select *stud from data","H":"select data*students from"},"c":["B","E"]},
+    {"n":6,"q":"Применить функцию аггрегации avg к следующему массиву данных: {1,5,6,7,8,3,10, 0}","o":{"A":"40","B":"42","C":"5","D":"41","E":"7","F":"43"},"c":["C"]},
+    {"n":7,"q":"Виды операции можно применять к базам данных","o":{"A":"форматирование","B":"сжатие","C":"обновление","D":"удаление","E":"корреляция","F":"систематизация","G":"создание","H":"оптимизация"},"c":["C","D","G"]},
+    {"n":8,"q":"Архитектура ANSI/SPARC включает следующие уровни","o":{"A":"внешний, концептуальный, внутренний","B":"внешний, концептуальный","C":"концептуальный, внутренний","D":"внешний, средний, внутренний","E":"внешний, внутренний","F":"внешний, промежуточный, внутренний","G":"внешний, промежуточный, концептуальный, внутренний"},"c":["A"]},
+    {"n":9,"q":"Применение денормализации влечет","o":{"A":"понижение производительности","B":"фильтрацию данных","C":"удаление всех данных","D":"группировку данных","E":"нормализацию данных","F":"повышение производительности","G":"выполнение запросов"},"c":["F"]},
+    {"n":10,"q":"Выражение, описывающее правило объединения","o":{"A":"if a→b and a→c, then a→bc","B":"if a→b or a→c, then a→bc","C":"if a→b and a→c, then a→c, a→b","D":"if a→b or b→c, then a→c","E":"if a→by , then a→b and a→y","F":"if a→b and b→c, then a→c"},"c":["A"]},
+    {"n":11,"q":"Архитектура ANSI/SPARC содержит уровни","o":{"A":"серверный","B":"внутренний","C":"логический","D":"внешний","E":"средний","F":"концептуальный","G":"промежуточный","H":"клиентский"},"c":["B","D","F"]},
+    {"n":12,"q":"Для упорядочивания по алфавиту используется следующая команда","o":{"A":"filter by","B":"from A to Z","C":"filter on","D":"between A to Z","E":"list","F":"change from A to Z","G":"join","H":"order by"},"c":["H"]},
+    {"n":13,"q":"Архитектура ANSI/SPARC не включает следующие уровни","o":{"A":"логический","B":"промежуточный","C":"внутренний","D":"концептуальный","E":"серверный","F":"клиентский","G":"средний","H":"внешний"},"c":["B","E","F"],"note":"Спорный: ANSI/SPARC содержит только внешний, концептуальный и внутренний уровни, поэтому формально «не входят» также «логический» и «средний» — но тест допускает не более трёх ответов. Уточнить у преподавателя."},
+    {"n":14,"q":"Результат выполнения следующей команды\ncreate table stud (x int, y int);\ninsert into stud values (10, 45);\ninsert into stud values (20, 70);\ninsert into stud values (30, 90);\ncreate table stud2 (x int, y int);\ninsert into stud2 values (10, 450);\ninsert into stud2 values (40, 900);\nSelect*from stud\njoin stud2\non stud.x= stud2.x","o":{"A":"10 45 450","B":"10 45 10 450","C":"stud, stud2","D":"45 70 90 450 900","E":"10 20 30 40 45 70 90 450 900","F":"10 20 30 40"},"c":["B"]},
+    {"n":15,"q":"Внесение изменений в БД на языке запросов SQL осуществляется посредством следующих команд","o":{"A":"where","B":"insert","C":"delete","D":"view","E":"update","F":"select","G":"between"},"c":["B","C","E"]},
+    {"n":16,"q":"Вывести все данные из таблицы emp на языке SQL\n\n| id | name | city | salary |\n| 01 | Almat | Semey | 1500 |\n| 02 | Arman | Taldykorgan | 1800 |\n| 03 | Zhania | Shimkent | 2000 |","o":{"A":"select from table emp *","B":"select id, name, city, salary from table emp","C":"select from table *emp","D":"select * from table emp where name= 'Arman'","E":"select * from table emp where salary > 1500","F":"select * from table emp","G":"select from* table emp"},"c":["B","F"]},
+    {"n":17,"q":"Виды строчных данных в работе с БД","o":{"A":"{4,6,8,6,0,10}","B":"'stud', 'string'","C":"null","D":"true, false","E":"1, 2.6, 'stud'","F":"2, 4, 8","G":"unknown"},"c":["B"]},
+    {"n":18,"q":"Увеличить заработную плату таблице employers на 20 процентов с использованием команд SQL","o":{"A":"set employers salary * 1.2","B":"set employers update salary= salary * 1.2","C":"update employers insert salary = salary * 1.2","D":"insert salary = salary * 1.2","E":"update employers and insert salary = salary * 1.2","F":"update employers set salary= salary * 1.2"},"c":["F"]},
+    {"n":19,"q":"Увеличить заработную плату для тех, у кого она не превышает 80000 в таблице employers на 20 процентов с использованием команд SQL","o":{"A":"update salary = salary * 1.2 where salary < 80000","B":"set employers update salary = salary * 1.2 where salary < 80000","C":"insert salary = salary * 1.2 where salary < 80000","D":"update employers set salary = salary * 1.2 where salary < 80000","E":"select * from emloyers where salary < 80000 insert salary = salary * 1.2","F":"insert salary = salary * 1.2 where salary < 80000; update"},"c":["D"]},
+    {"n":20,"q":"Вывести список студентов 2,3,4-курсов или специальности «Туризм»","o":{"A":"select name from stud where speciality = Tourism or course > '1'","B":"select name from stud where speciality = 'Tourism' and course > 1","C":"select name from stud where speciality = 'Tourism' or course > '1'","D":"select name from stud where speciality = 'Tourism'; select name from stud where course > 1","E":"select name from stud where speciality = Tourism and course > 1","F":"select name from stud where speciality = 'Tourism' or course > 1"},"c":["F"]}
+  ]
+},
+{
+  "id": "db2", "lang": "ru", "subject": "База данных", "variant": 2,
+  "questions": [
+    {"n":1,"q":"Обозначение трехуровневой архитектуры","o":{"A":"уровень пользовательского интерфейса","B":"уровень масштабируемости","C":"уровень реализации прикладных алгоритмов и средств обработки данных","D":"уровень соединения","E":"уровень получения данных","F":"СУБД, в которой хранятся данные","G":"уровень присваивания","H":"уровень отправки"},"c":["A","C","F"]},
+    {"n":2,"q":"Операции соединения в реляционной алгебре","o":{"A":"естественное соединение","B":"тета соединение","C":"условное соединение","D":"результативное соединение","E":"внешнее соединение","F":"альфа соединение"},"c":["A","B","E"]},
+    {"n":3,"q":"Операция над множествами: Set{1,2,3,4,5} union Set{1,3,4,8,9}","o":{"A":"{8,9}","B":"{1,2,3,4,5,8,9}","C":"{2,8,9}","D":"{8,9,5,4,1,2,3}","E":"{1,2,3,4,5,1,3,4,8,9}","F":"{2,5}","G":"{1,3,4}"},"c":["B","D"]},
+    {"n":4,"q":"Основные объекты модели данных RDF","o":{"A":"запрос","B":"параметры","C":"свойство","D":"ресурс","E":"таблица","F":"ячейка","G":"связь","H":"типы данных"},"c":["C","D","G"]},
+    {"n":5,"q":"Ключ, который используется для создания уникальных идентификаторов строк и содержит смысл сам по себе","o":{"A":"уникальный","B":"составной","C":"естественный","D":"простой","E":"суррогатный","F":"искусственный","G":"вторичный","H":"внешний"},"c":["C"]},
+    {"n":6,"q":"Агрегирующая функция AVG","o":{"A":"позволяет упорядочить выбранные записи только в порядке убывания (DESC)","B":"возвращает усредненное значение в указанном столбце","C":"возвращает количество значений в указанном столбце","D":"позволяет упорядочить выбранные записи только в порядке возрастания (ASC)","E":"возвращает сумму значений в указанном столбце","F":"возвращает максимальное значение в указанном столбце"},"c":["B"]},
+    {"n":7,"q":"К операциям управления данных относится","o":{"A":"описание атрибутов приложения","B":"интеграция мета данных","C":"указание ограничения целостности и защиты","D":"вставка в базу данных новых записей","E":"модификация сведений, хранимых в базе данных","F":"обозначение системного каталога"},"c":["D","E"]},
+    {"n":8,"q":"Запрос, который выбирает поля, где column1 не содержит значения от 1 до 3 включительно","o":{"A":"select * from table where column1 =1 and 3","B":"select * from table where column1< =1 or column1 > 3","C":"select * from table where column1 not in (1,2,3)","D":"select * from table where column1 not between 1 and 3","E":"select * from table where column1<1 and column1>3","F":"select * from table where column1!=1 and column1!=2 and column1!=3","G":"select * from table where column1=1 and column1=2 and column1=3","H":"select * from table where column1=1 or column1=2 or column1=3"},"c":["C","D","F"]},
+    {"n":9,"q":"Запрос, сортирующий сотрудников по длине их имени и фамилии вместе взятых в порядке возрастания (last_name-фамилия, first_name –имя, – атрибуты таблицы table)","o":{"A":"select last_name, first_name from table order by length(last_name) + length(first_name) desc","B":"select last_name, first_name from table order by length(concat(last_name, first_name))","C":"select last_name, first_name from table order by last_name +first_name","D":"select last_name, first_name from table order by length(last_name) + length(first_name)","E":"select last_name, first_name from table order by last_name ,first_name","F":"select last_name, first_name from table order by last_name ,length(first_name)"},"c":["B","D"]},
+    {"n":10,"q":"Запрос, сортирующий сотрудников по последней букве фамилии в порядке (z to a)","o":{"A":"select last_name from table order by substr(last_name,1,-1) asc","B":"select last_name from table order by instr(last_name,-1,1) desc","C":"select last_name from table order by last_name[-1]","D":"select last_name from table sort by substr(last_name,-1,-1)","E":"select last_name from table order by substr(last_name,-1,1) desc","F":"select last_name from table order by last_name desc","G":"select last_name from table sort by instr(last_name,-1,1) desc"},"c":["E"]},
+    {"n":11,"q":"Оператор SELECT","o":{"A":"выполняет выборки и отображении данных одной или более таблиц базы данных","B":"определение имен используемой таблицы или нескольких таблиц","C":"предназначен для добавления данных в таблицу","D":"предназначен для модификации уже помещенных в таблицу данных","E":"упорядочить выбранные записи в порядке возрастания (ASC) или убывания (DESC) значений любого столбца или комбинации столбцов","F":"возвращает сумму значений в указанном столбце"},"c":["A"]},
+    {"n":12,"q":"DDL команда создания индекса","o":{"A":"create or replace index idx on table1;","B":"create index idx on table1(column1);","C":"create or replace index idx on column1 of table1;","D":"create or replace index idx on table1(column1);","E":"create index idx for table1(column1);","F":"alter index idx on column1 of table1;","G":"create or replace index idx on table1(column1,column2,column3);","H":"create index idx on table1(column1,column2);"},"c":["B","H"]},
+    {"n":13,"q":"Автоматическая фиксация данных происходит при обстоятельствах","o":{"A":"один sql запрос","B":"происходит одно заявление DCL","C":"происходит несколько последовательных заявлений DML","D":"происходит два последовательных запроса sql","E":"происходит одно заявление DML","F":"происходит одно заявление DDL"},"c":["B","F"]},
+    {"n":14,"q":"Транзакция базы данных состоит из","o":{"A":"два последовательных заявления DCL","B":"один оператор DDL","C":"одно заявление DCL","D":"операторы DML, которые составляют одно последовательное изменение данных","E":"операторы DML, которые не составляют одно последовательное изменение данных","F":"sql запрос"},"c":["D"]},
+    {"n":15,"q":"SQL является","o":{"A":"объектно-ориентированным языком программирования","B":"инструмент обработки медиафайлов","C":"процедурным языком","D":"стандартным языком определения и манипулирования реляционными базами данных","E":"непроцедурным языком, построенным на использовании обычных английских слов (таких как SELECT, INSERT, DELETE)","F":"процедурным языком, который непредназначен для работы с базами данных","G":"инструмент 3D моделирования"},"c":["D","E"]},
+    {"n":16,"q":"В таблице products есть только 3 продукта. Цена первого продукта 15000, цена второго продукта 30000, третьего 2000. Результат запроса\nselect price from products\nwhere price>all (select 1000 from dual\nUNION\nselect 10000 from dual\nUNION\nselect 12000 from dual);","o":{"A":"15000, 30000","B":"10000,15000","C":"2000","D":"30000,15000","E":"30000","F":"15000, 2000"},"c":["A","D"]},
+    {"n":17,"q":"В таблице products есть только 3 продукта. Цена первого продукта 15000, цена второго продукта 20000, третьего 2000. Результат запроса\nselect price from products\nwhere price>any (select 1000 from dual\nUNION\nselect 30000 from dual\nUNION\nselect 12000 from dual);","o":{"A":"15000, 20000","B":"20000,15000,2000","C":"2000,20000,15000","D":"10000,15000","E":"20000","F":"15000, 2000","G":"2000,15000,20000","H":"2000,20000"},"c":["B","C","G"]},
+    {"n":18,"q":"Проблемы, которые предотвращают уровень изоляции транзакций READ COMMITTED","o":{"A":"грязное чтение","B":"ложное добавление","C":"потерянное обновление","D":"фантомное удаление","E":"дублирующее чтение","F":"фантомное чтение","G":"повторяющееся чтение","H":"фантомное обновление"},"c":["A"]},
+    {"n":19,"q":"Проблемы при параллельном выполнении транзакций","o":{"A":"грязное чтение","B":"потерянное обновление","C":"дублирующее чтение","D":"фантомное удаление","E":"повторяющееся чтение","F":"фантомное чтение","G":"ложное добавление","H":"фантомное обновление"},"c":["A","B","F"]},
+    {"n":20,"q":"Соединение многих отношений в запросе может повлиять на чтение и сделать его чрезмерно медленным. Решение данной проблемы","o":{"A":"удаление ненужных данных","B":"создание материализованного представления","C":"привести данные в 3 нормальную форму","D":"создание представления","E":"привести данные в 4 нормальную форму","F":"денормализация"},"c":["B","F"]}
+  ]
+},
+{
+  "id": "db3", "lang": "ru", "subject": "База данных", "variant": 3,
+  "questions": [
+    {"n":1,"q":"Среда СУБД состоит","o":{"A":"только из аппаратного обеспечения (компьютеров) и пользователей","B":"только из аппаратного обеспечения (компьютеров)","C":"только из программного обеспечения","D":"только из пользователей данных","E":"из аппаратного обеспечения (компьютеров), данных, процедур пользователей","F":"пользователей и администратора","G":"только из моделей мета данных","H":"только из моделей и данных"},"c":["E"]},
+    {"n":2,"q":"Реляционные операции сравнения","o":{"A":"⊆","B":"<=","C":"⊇","D":"<>","E":">=","F":"⊂","G":">","H":"<"},"c":["D","G","H"],"note":"Спорный: операциями сравнения являются и <= (B), и >= (E), то есть подходят пять вариантов — но тест допускает не более трёх ответов. Уточнить у преподавателя."},
+    {"n":3,"q":"Типы работы разработчика логической базы данных","o":{"A":"абстрагированое и сетевое","B":"системный и сетевое проектирование","C":"логическое и эффективное проектирование","D":"концептуальное и логическое проектирование","E":"концептуальное и сетевое проектирование","F":"логическое и сетевое","G":"реляционное и концептуальное проектирование"},"c":["D"]},
+    {"n":4,"q":"Количество атрибутов в таблице называется","o":{"A":"кардинальность отношения","B":"n-мерность отношения","C":"ранг отношения","D":"сила отношения","E":"мощность отношения","F":"степень отношения"},"c":["F"]},
+    {"n":5,"q":"Ключ, который является первичным в другой таблице, но в текущей таблице служит вспомогательным ключом для связи","o":{"A":"естественный ключ","B":"вторичный ключ","C":"суррогатный ключ","D":"первичный ключ","E":"простой ключ","F":"внешний ключ","G":"составной ключ","H":"искусственный ключ"},"c":["F"]},
+    {"n":6,"q":"Запрос, который выбирает сумму всех уникальных значений столбца в таблице","o":{"A":"select sum(distinct column) from table;","B":"select sum(column) from table;","C":"select unique sum(column) from table;","D":"select mean(column) from table;","E":"select sum(column) from table where sum(column) is distinct;","F":"select sum(column) from table group by column;","G":"select column, sum(column) from table;"},"c":["A"]},
+    {"n":7,"q":"Запрос, который выбирает поля, где column1 содержит букву 'a' или 'e'","o":{"A":"select * from table where column1 like '%a' and column1 like '%e'","B":"select * from table where column1 consist of('a','e)","C":"select * from table where column1 like '%a%' or column1 like '%e%'","D":"select * from table where instr(column1,'a')>0 or instr(column1,'e')>0","E":"select * from table where instr(column1,'a')>0 and instr(column1,'e')>0","F":"select * from table where column1 like '%a%' and column1 like '%e%'","G":"select * from table where column1 like 'a' and column1 like 'e'","H":"select * from table where instr(column1,'a')=1 or instr(column1,'e')=1"},"c":["C","D"]},
+    {"n":8,"q":"Запрос, который выбирает поля, где column1 содержит значения от 1 до 3 включительно","o":{"A":"select * from table where column1 =1 and 3","B":"select * from table where column1 between 1 and 3","C":"select * from table where column1>1 and column1<3","D":"select * from table where column1 in (1,2,3)","E":"select * from table where column1> 1 or column1 < 3","F":"select * from table where column1=1 and column1=2 or column1=3","G":"select * from table where column1=1 or column1=2 or column1=3","H":"select * from table where column1=1 and column1=2 and column1=3"},"c":["B","D","G"]},
+    {"n":9,"q":"Запрос, сортирующий отделы (порядок возрастания) по сумме зарплат сотрудников, работающих там, при подсчете суммы учитывались только зарплаты больше 10000 (department, salary – атрибуты таблицы table)","o":{"A":"select department, sum(salary) from table order by last_name desc","B":"select department, sum(salary) from table group by department order by last_name","C":"select department, sum(salary) from table group by department having salary>10000 order by sum(salary)","D":"select sum(salary), department from table where salary>10000 group by department order by sum(salary) asc","E":"select department, sum(salary) from table where salary>10000 group by department order by sum(salary)","F":"select department, sum(salary) from table group by department order by sum(salary) desc"},"c":["D","E"]},
+    {"n":10,"q":"Запрос, сортирующий отделы по средней арифметической заплаты в порядке возрастания (department, salary – атрибуты таблицы table)","o":{"A":"select department, sum(salary)/count(*) from table group by department order by sum(salary)/count(*) asc","B":"select avg (salary) as average, department from table group by department order by avg(salary) asc","C":"select department, mean (salary) from table group by department order by mean(salary)","D":"select department, avg (salary) from table order by avg(salary) group by department","E":"select department, avg (salary) from table group by department order by avg(salary) desc","F":"select department, avg (salary) from table group by department order by avg(salary)"},"c":["A","B","F"]},
+    {"n":11,"q":"Объединение двух таблиц, возвращающих только совпадающие строки из двух таблиц по сопоставленному условию","o":{"A":"cross join","B":"left outer join","C":"right outer join","D":"outer join","E":"full outer join","F":"inner join"},"c":["F"]},
+    {"n":12,"q":"Цели управления параллельным выполнением в распределенной среде","o":{"A":"освобождение всех установленных блокировок","B":"отправить всем участникам команду GLOBAL_ABORT","C":"устойчивость к отказам на узле и в линиях связи","D":"поместить в системный журнал запись commit и обеспечить ее принудительную запись из буфера","E":"направить на узлы сообщение о принятом глобальном решении","F":"отсутствие дополнительных ограничений на структуру"},"c":["C","F"]},
+    {"n":13,"q":"Подраздел SQL, который используется для добавления данных в базу данных, для изменения существующих данных в базе данных или удаления данных из базы данных","o":{"A":"data manipulation language","B":"data definition language","C":"data altering language","D":"data control language","E":"transaction control language","F":"mdx","G":"query language","H":"query by example"},"c":["A"]},
+    {"n":14,"q":"Оператор, который завершает текущую транзакцию, отбрасывая все ожидающие изменения данных до предыдущих постоянных данных","o":{"A":"rollback to savepoint A","B":"rollback","C":"checkpoint","D":"commit A","E":"commit","F":"savepoint A"},"c":["B"]},
+    {"n":15,"q":"Запрос, который выводит название продукта, чья цена выше средней арифметической цены всех продуктов","o":{"A":"select price from products where price > (select avg(price) from products)","B":"select product_name from products where price > (select mean(price) from products)","C":"select product_name from products where price >avg(price)","D":"select product_name from products where price in (select avg(price) from products)","E":"select product_name from products where price > (select sum(price)/count(*) from products)","F":"select product_name from products where price > (select median(price) from products)","G":"select product_name from products where price > (select avg(price) from products)"},"c":["E","G"]},
+    {"n":16,"q":"Оператор DESCRIBE","o":{"A":"передает программе описание столбцов результирующей таблицы","B":"предоставляет программе описание входных параметров","C":"освобождает память от дополнительной информации","D":"указывает на этап обработки данных","E":"отправляет дату и время транзакций","F":"отправляет курсор на дополнительную информацию","G":"выводит адрес ошибки"},"c":["A","B"]},
+    {"n":17,"q":"Операторы сравнения однострочных подзапросов","o":{"A":">","B":"all","C":"<","D":"in","E":"=","F":"some","G":"any"},"c":["A","C","E"]},
+    {"n":18,"q":"Файловый сервер","o":{"A":"клиент принимает от пользователя запрос","B":"клиент управляет пользовательским интерфейсом","C":"большой объем сетевого трафика","D":"на каждой рабочей станции должна находиться полная копия СУБД","E":"управление параллельной работой","F":"клиент управляет пользовательской логикой приложения"},"c":["C","D"]},
+    {"n":19,"q":"Нормализация","o":{"A":"включает объединение существующих таблиц в одну большую","B":"процесс удаления избыточных данных из таблиц для повышения эффективности хранения, целостности данных и масштабируемости","C":"процесс преобразования сложных структур данных в простые, стабильные структуры данных","D":"процесс добавления избыточных данных в таблицы для повышения эффективности хранения, целостности данных и масштабируемости","E":"процесс преобразования простых структур данных в сложные, стабильные структуры данных","F":"включает разделение существующих таблиц на несколько других, которые могут быть объединены или связаны когда выдается запрос"},"c":["B","C","F"]},
+    {"n":20,"q":"Аномалии, которые возможны при денормализации","o":{"A":"аномалии создания","B":"аномалии объединения","C":"аномалии обновления","D":"аномалии соединения","E":"аномалии слияния","F":"аномалии вставки","G":"аномалии удаления","H":"аномалии поиска"},"c":["C","F","G"]}
+  ]
+},
+{
+  "id": "db4", "lang": "ru", "subject": "База данных", "variant": 4,
+  "questions": [
+    {"n":1,"q":"В таблице данных студентов добавьте в ячейку с номером пять 25 баллов на языке SQL","o":{"A":"create student insert 25 where number = 5 ;","B":"enter 25 to grade where number = 5;","C":"insert 25 to number=25;","D":"insert student set grade= grade + 25 where number = 5 ;","E":"update student set grade= grade + 25 where number = 5 ;"},"c":["E"]},
+    {"n":2,"q":"На SQL вывести номера, имена и номера отделов работников, служащих в отделах 15, 17, 19","o":{"A":"select number, name, dept_number from emp where dept_number in (15, 17, 19)","B":"select * from emp where dept_number in (15, 17, 19)","C":"select number, name, dept_number from emp where dept_number order in (15, 17, 19)","D":"select number, name, dept_number from emp where dept_number on (15, 17, 19)","E":"select number, name, dept_number from emp where dept_number between (15, 17, 19)","F":"select number, name, dept_number from emp where dept_number =15 or dept_number =17 or dept_number = 19)"},"c":["A","F"]},
+    {"n":3,"q":"Результат выполнения следующей команды\ncreate table calc (x int, y int);\ninsert into calc values (5, 45);\nselect *from calc x, y, x+y;","o":{"A":"1","B":"5, 45","C":"45","D":"50","E":"55","F":"225","G":"5","H":"5, 45, 50"},"c":["H"]},
+    {"n":4,"q":"Результат выполнения данной команды на SQL\ncreate table department (id int, salary int);\ninsert into department values (102, 45000);\ninsert into department values (103, 15000);\ninsert into department values (104, 90000);\ninsert into department values (105, 10000);\nSelect round (y)","o":{"A":"40000","B":"15000","C":"160000","D":"90000","E":"45000","F":"10000"},"c":["A"]},
+    {"n":5,"q":"Результат выполнения следующей команды для данной таблицы:\nselect name from instructor where dept = 'Physics' order by name;\n\n| name | dept | teacher |\n| Aigerim | Physics | Berikova M.Zh. |\n| Bauyrzhan | Math | Ivanov P.A. |\n| Gulzhan | Physics | Omarova P.E. |\n| Samat | Physics | Erbolova A.S. |","o":{"A":"Berikova M.Zh., Erbolova A.S., Ivanov P.A., Omarova P.E.","B":"Physics","C":"Aigerim, Bauyrzhan","D":"Berikova M.Zh., Erbolova A.S., Omarova P.E.","E":"Aigerim, Bauyrzhan, Gulzhan, Samat","F":"Aigerim, Gulzhan, Samat"},"c":["F"]},
+    {"n":6,"q":"Результат выполнения следующей команды на SQL\ncreate table stud (x int, y int);\ninsert into stud values (005, 45);\ninsert into stud values (006, 70);\ninsert into stud values (007, 95);\ninsert into stud values (008, 100);\norder by y","o":{"A":"77,5","B":"45, 70, 95, 100","C":"005, 006, 007, 008","D":"310","E":"008, 007, 006, 005","F":"100, 95, 70, 45"},"c":["B"]},
+    {"n":7,"q":"Возможные варианты ответов следующего кода SQL\nselect name from stud where name like 'A%';","o":{"A":"Serzhan","B":"Alibek","C":"Samal","D":"Serik","E":"Saken","F":"Aigul","G":"Aisulu","H":"Raimbek"},"c":["B","F","G"]},
+    {"n":8,"q":"Для упорядочивания по алфавиту используется следующая команда","o":{"A":"list","B":"join","C":"change from A to Z","D":"order by","E":"between A to Z","F":"from A to Z","G":"filter by","H":"filter on"},"c":["D"]},
+    {"n":9,"q":"Результат выполнения следующих операторов SQL\nSELECT NAME, DICSIPLINE\nFROM STUD\nWHERE GRADE <50;","o":{"A":"Akbota, Math","B":"40, Akbota, Math","C":"Akbota, Math, 47","D":"Nazgul, Geography, 40","E":"Nazgul, Geography","F":"Batyr, Biology","G":"Batyr, Biology, 40","H":"Nazgul, Geography, GRADE=40"},"c":["A","E","F"]},
+    {"n":10,"q":"Название таблицы в следующем коде: Insert into data (id, name, table, table2)","o":{"A":"insert","B":"нет названия таблицы","C":"id","D":"name","E":"table2","F":"into","G":"table","H":"data"},"c":["H"]},
+    {"n":11,"q":"Использование команды SELECT","o":{"A":"набор","B":"начало","C":"использование","D":"фильтрация","E":"создание","F":"отбор","G":"корреляция","H":"выбор"},"c":["F","H"]},
+    {"n":12,"q":"Правильный синтаксис написания кода на SQL","o":{"A":"select from students","B":"select *from data","C":"select from data","D":"select *data from students","E":"select data*students from","F":"select *stud from data","G":"select from *data","H":"select data from students"},"c":["B","H"]},
+    {"n":13,"q":"Команда SQL","o":{"A":"realter","B":"alter","C":"print","D":"cout","E":"select","F":"rechange","G":"change","H":"scanner"},"c":["B","E"]},
+    {"n":14,"q":"Виды операции можно применять к базам данных","o":{"A":"создание","B":"удаление","C":"систематизация","D":"форматирование","E":"оптимизация","F":"сжатие","G":"корреляция","H":"обновление"},"c":["A","B","H"]},
+    {"n":15,"q":"Виды строчных данных в работе с БД","o":{"A":"unknown","B":"{4,6,8,6,0,10}","C":"true, false","D":"1, 2.6, 'stud'","E":"'stud', 'string'","F":"2, 4, 8","G":"null"},"c":["E"]},
+    {"n":16,"q":"Операции, которые нельзя применять к базам данных","o":{"A":"сжатие","B":"удаление данных","C":"обновление","D":"оптимизация","E":"удаление файлов","F":"создание","G":"вставлять данные","H":"форматирование"},"c":["A","D","H"]},
+    {"n":17,"q":"Команды, которые не существуют в языке SQL","o":{"A":"insert","B":"select","C":"delete","D":"enter","E":"input","F":"update","G":"create","H":"start"},"c":["D","E","H"]},
+    {"n":18,"q":"Названия столбцов в следующем коде: Insert into data (id, name, table)","o":{"A":"into","B":"table","C":"name","D":"insert","E":"id","F":"нет названия столбцов","G":"data","H":"insert, into, data, id, name, table"},"c":["B","C","E"]},
+    {"n":19,"q":"Результат выполнения следующих операторов SQL: SELECT ID, NAME, CITY, GROUP FROM STUDENT WHERE GROUP=1;","o":{"A":"6, Erbol, Atyrau, 2","B":"7, Zhanna, Karaganda, 2","C":"5, Almas, Aktau, 1","D":"2, Zhangir, Kostanay, 1","E":"2, Edige, Shimkent, 2","F":"Aigul, Kostanay, 1, 2","G":"1, Alma, Almaty, 1","H":"1, Altyn, Oral, 2"},"c":["C","D","G"]},
+    {"n":20,"q":"Правильный вариант написания запроса на SQL","o":{"A":"select *univer, *faculty, *group from students where name= \"Alma\"","B":"select *univer, faculty, group from students where name= \"Alma\"","C":"select \"univer\", \"faculty\", \"group\" from \"students\" where \"name\"= Alma","D":"select *from students where name= \"Alma\"","E":"select univer, faculty, group from students where \"name\"= \"Alma\"","F":"select univer, faculty, group from students where name= \"Alma\"","G":"select univer, faculty, group from students where name= Alma","H":"select \"univer\", \"faculty\", \"group\" from students where \"name\"= Alma"},"c":["D","F"]}
+  ]
+},
+{
+  "id": "db5", "lang": "ru", "subject": "База данных", "variant": 5,
+  "questions": [
+    {"n":1,"q":"Команда добавления данных в таблицу","o":{"A":"UPDATE","B":"GET","C":"DELETE","D":"POST","E":"PUT","F":"INSERT"},"c":["F"]},
+    {"n":2,"q":"Агрегатные функции","o":{"A":"AVG","B":"DELETE","C":"SELECT","D":"WHERE","E":"MIN","F":"FROM","G":"UPDATE"},"c":["A","E"]},
+    {"n":3,"q":"В подзапросах оператор IN","o":{"A":"может использоваться с подзапросами","B":"предназначено для нахождения минимального значения","C":"предназначено для нахождения среднего значения","D":"определяет набор значений предиката, одно из которых не должно совпадать с другим по порядку","E":"не может использоваться с подзапросами","F":"предназначено для нахождения максимального значения","G":"определяет набор значений предиката, одно из которых должно совпадать с другим по порядку"},"c":["A","G"]},
+    {"n":4,"q":"Дана таблица Students (ID, Name, Surname, GPA, COURSE):\n1, Yerbol, Kazhigerey, 2.5, 3\n2, Aidana, Khassenova, 3, 2\n3, Marat, Aidosov, 4, 1\n4, Aidos, Kurmanov, 1.4, 4\n5, Elena, Fedorova, 2, 1\n6, Aidar, Elmanov, 3.1, 3\n7, Anna, Karenina, 2.1, 2\nВыберите все результаты следующего SQL запроса\nSELECT ID FROM Students WHERE Name='Aidar';","o":{"A":"1","B":"5","C":"2","D":"3","E":"Kurmanov","F":"6"},"c":["F"]},
+    {"n":5,"q":"Дана таблица STUDENTS (ID, Name, Surname, GPA, COURSE):\n1, Yerbol, Urmanov, 4, 3\n2, Aidana, Ashirbekova, 4, 3\n3, Marat, Aidosov, 4, 1\n4, Aidos, Kurmanov, 1.4, 4\n5, Elena, Fedorova, 2, 1\n6, Aidar, Elmanov, 3.1, 3\n7, Gaukhar, Khassenova, 2.9, 4\nВыберите правильный SQL запрос, который для каждого курса (COURSE) определяет наименьший GPA","o":{"A":"SELECT COURSE, MAX(COURSE) FROM STUDENTS GROUP BY COURSE;","B":"SELECT COURSE, MIN(COURSE) FROM STUDENTS GROUP BY COURSE;","C":"SELECT * FROM STUDENTS GROUP BY COURSE;","D":"SELECT COURSE, MAX(GPA) FROM STUDENTS GROUP BY COURSE;","E":"SELECT * FROM STUDENTS;","F":"SELECT COURSE, MIN(GPA) FROM STUDENTS GROUP BY COURSE;"},"c":["F"]},
+    {"n":6,"q":"Операция сокращения в реляционной базе данных","o":{"A":"извлекает определенны столбцы из таблицы","B":"удаляет столбцы","C":"удаляет строки","D":"извлекает указанные строки из таблицы","E":"делает выборку строк","F":"осуществляет выборку столбцов из таблицы","G":"осуществляют комбинацию двух таблиц"},"c":["D","E"]},
+    {"n":7,"q":"Правильные утверждения касательно предикатов включающие подзапросы","o":{"A":"предикаты не связаны с подзапросами","B":"предикаты включающие подзапросы используют конструкцию <выражение> <оператор> <подзапрос>","C":"в этом контексте отсутствуют правила","D":"предикаты с подзапросами являются необратимыми","E":"предикаты с подзапросами не являются необратимыми","F":"предикаты включающие подзапросы используют конструкцию <подзапрос> <оператор> <выражение>","G":"предикаты включающие подзапросы используют конструкцию <подзапрос> <оператор> <подзапрос>"},"c":["B","D"]},
+    {"n":8,"q":"Денормализация предполагает","o":{"A":"наличие повышенной избыточности данных","B":"повышенное количество запросов фильтрации","C":"повышенное количество запросов поиска","D":"пониженное количество данных","E":"пониженное количество запросов фильтрации","F":"пониженное количество запросов поиска"},"c":["A","E","F"]},
+    {"n":9,"q":"Предикат это","o":{"A":"операнд","B":"информация","C":"дерево","D":"функция с истинностными значениями, которая, как и все функции, имеет ряд формальных параметров","E":"параметр","F":"оператор"},"c":["D"]},
+    {"n":10,"q":"Операторы, которых можно использовать в подзапросах","o":{"A":"having","B":"BETWEEN","C":"LIKE","D":"group by","E":"ANY","F":"IS NULL","G":"IN"},"c":["E","G"]},
+    {"n":11,"q":"Дана таблица Students (ID, Name, Surname, GPA, COURSE). Выберите правильно написанные SQL запросы использующие group by","o":{"A":"SELECT COURSE, MIN(GPA) FROM STUDENTS GROUP BY COURSE;","B":"SELECT COURSE, WHICH(GPA) FROM STUDENTS GROUP BY COURSE;","C":"SELECT COURSE, MIN(GPA) FROM STUDENTS GROUPING BY COURSE;","D":"SELECT COURSE, MAX(GPA) FROM STUDENTS GROUPING BY COURSE;","E":"SELECT COURSE, AVG(GPA) FROM STUDENTS GROUP BY COURSE;","F":"SELECT WHO(COURSE), MAX(GPA) FROM STUDENTS GROUP BY COURSE;","G":"SELECT WHICH(COURSE), MAX(GPA) FROM STUDENTS GROUP BY COURSE;","H":"SELECT COURSE, MAX(GPA) FROM STUDENTS GROUP BY COURSE;"},"c":["A","E","H"]},
+    {"n":12,"q":"Нормальная форма, где первичный ключ (целиком) должен описывать каждый неключевой атрибут, какая то часть первичного ключа отдельно не должна описывать каждый неключевой атрибут, но где возможны зависимости одних неключевых атрибутов от других.","o":{"A":"4NF","B":"5NF","C":"6NF","D":"2NF","E":"3NF","F":"1NF"},"c":["D"]},
+    {"n":13,"q":"Абстракная машина доступа к данным, с которой взаимодействует пользователь","o":{"A":"строки","B":"запросы","C":"деревья","D":"столбцы","E":"модель данных","F":"группа данных"},"c":["E"]},
+    {"n":14,"q":"Правильно написанные SQL команды для изменения данных в таблице","o":{"A":"CHANGE Students SET COURSE = 4 WHERE ID = 1;","B":"UPDATE Students ASSIGN COURSE = 4 WHERE ID = 1;","C":"UPDATE Students SET COURSE = 2 WHERE ID = 1;","D":"UPDATE Students SET COURSE = 4 WHERE ID = 1;","E":"CHANGE Students SET COURSE = 4 WHERE ID = 5;","F":"UPDATE Students ATTACH COURSE = 4 WHERE ID = 1;","G":"UPDATE Students SET COURSE = 4 WHICH ID = 1;"},"c":["C","D"]},
+    {"n":15,"q":"Оно используется для объединения таблиц","o":{"A":"WHICH","B":"ALTER","C":"WHY","D":"CONNECT","E":"CREATE","F":"JOIN"},"c":["F"]},
+    {"n":16,"q":"Переменная отношения R находится в третьей нормальной форме тогда и только тогда, когда для каждой функциональной зависимости X → A в переменной отношения R верно по крайней мере одно из следующих утверждений","o":{"A":"X входит в состав некоторого потенциального ключа переменной отношения R","B":"X не входит в состав некоторого потенциального ключа переменной отношения R","C":"Подмножество X является суперключом переменной отношения R","D":"Атрибут A входит в состав некоторого потенциального ключа переменной отношения R","E":"Атрибут A не входит в состав некоторого потенциального ключа переменной отношения R","F":"Подмножество X не включает атрибут A (т.е. данная ФЗ тривиальна)","G":"Подмножество X не является суперключом переменной отношения R","H":"Подмножество X включает атрибут A (т.е. данная ФЗ тривиальна)"},"c":["C","D","H"]},
+    {"n":17,"q":"Аксиомы Армстронга в контексте функциональных зависимостей","o":{"A":"образность","B":"серийность","C":"параллельность","D":"рефлексивность","E":"балансированность","F":"дополнение","G":"транзитивность","H":"интеграция"},"c":["D","F","G"]},
+    {"n":18,"q":"Метод сущность-связь называют также методом","o":{"A":"EA-диаграмм","B":"AE-диаграмм","C":"EE-диаграмм","D":"RR-диаграмм","E":"EZ-диаграмм","F":"ER-диаграмм"},"c":["F"]},
+    {"n":19,"q":"Дана таблица Students (ID, Name, Surname, GPA, COURSE):\n1, Yerbol, Kazhigerey, 2.5, 3\n2, Aidana, Khassenova, 3, 2\n3, Marat, Aidosov, 4, 1\n4, Aidos, Kurmanov, 1.4, 4\n5, Elena, Fedorova, 2, 1\n6, Aidar, Elmanov, 3.1, 3\n7, Anna, Karenina, 2.1, 2\nВыберите все результаты следующего SQL запроса\nSELECT Name FROM Students WHERE ID=1 OR ID=2;","o":{"A":"Yerbol","B":"3","C":"Karenina","D":"Aidar","E":"5","F":"4","G":"Aidana"},"c":["A","G"]},
+    {"n":20,"q":"Для того чтобы изменить данные в таблицы используется команда","o":{"A":"CREATE","B":"UPDATE","C":"ATTACH","D":"ALTER","E":"DROP","F":"USE"},"c":["B"]}
+  ]
+},
+{
+  "id": "db6", "lang": "ru", "subject": "База данных", "variant": 6,
+  "questions": [
+    {"n":1,"q":"В этих контекстах может использоватся команда UPDATE","o":{"A":"для изменения данных в таблицах","B":"совместно с вложенными запросами","C":"для выделения первичного ключа в таблице","D":"при назначении первичного ключа","E":"при изменении ограничений в таблице","F":"для удаления таблицы","G":"для выборки данных"},"c":["A","B"]},
+    {"n":2,"q":"Формальные параметры следующего предиката \"Работник работает в отделе DEPT на позиции POSITION и получает зарплату SALARY\" (слова со всеми заглавными буквами являются столбцами в таблице)","o":{"A":"SALARY","B":"работает","C":"DEPT","D":"Работник","E":"получает","F":"POSITION","G":"зарплату","H":"отделе"},"c":["A","C","F"]},
+    {"n":3,"q":"Нормальная форма, где первичный ключ (целиком) должен описывать каждый неключевой атрибут, какая то часть первичного ключа отдельно не должна описывать каждый неключевой атрибут, где нет зависимостей одних неключевых атрибутов от других и ключевые атрибуты не должны зависеть от неключевых","o":{"A":"BCNF","B":"6NF","C":"4NF","D":"1NF","E":"5NF","F":"2NF","G":"7NF","H":"3NF"},"c":["A"]},
+    {"n":4,"q":"Дана таблица Students (ID, Name, Surname, GPA, COURSE):\n1, Yerbol, Urmanov, 2.5, 3\n2, Aidana, Ashirbekova, 3, 3\n3, Marat, Aidosov, 4, 1\n4, Aidos, Kurmanov, 1.4, 4\n5, Elena, Fedorova, 2, 1\n6, Aidar, Elmanov, 3.1, 3\n7, Gaukhar, Khassenova, 2.9, 4\nВыберите все результаты следующих SQL запросов\nUPDATE Students SET COURSE = 4 WHERE ID = 1;\nSELECT Name, Course where ID = 1;","o":{"A":"Aidana, 2","B":"Yerbol, 3","C":"Yerbol, 1","D":"Aidana, 4","E":"Yerbol, 2","F":"Yerbol, 4"},"c":["F"]},
+    {"n":5,"q":"SQL запросы использующие агрегатные функции","o":{"A":"SELECT * FROM USP WHERE SNUM=4","B":"SELECT SNUM, AVG (OCENKA) FROM USP GROUP BY SNUM;","C":"SELECT SNUM, MIN (OCENKA) FROM USP GROUP BY SNUM;","D":"SELECT * FROM USP","E":"SELECT * FROM USP WHERE SNUM=5","F":"SELECT * FROM USP WHERE SNUM=3","G":"SELECT SNUM FROM USP","H":"SELECT SNUM, MAX (OCENKA) FROM USP GROUP BY SNUM;"},"c":["B","C","H"]},
+    {"n":6,"q":"Основные сложности денормализации","o":{"A":"усложняет запросы группировки","B":"усложняет запросы создания таблиц","C":"усложняет запросы удаления таблиц","D":"усложняет запросы поиска","E":"усложняет запросы фильтрации","F":"создает проблемы избыточности и аномалии обновления","G":"сложно понять, когда ее закончить"},"c":["F","G"]},
+    {"n":7,"q":"Правильно написанные SQL запросы использующие объединения таблиц","o":{"A":"SELECT b.*, p.* FROM Branch1 b LEFT JOIN PropertyForRent1 p ON b.bCity = p.pCity;","B":"SELECT b.*, p.* FROM Branch1 b WHICH FULL JOIN PropertyForRent1 p ON b.bCity = p.pCity;","C":"SELECT b.*, p.* FROM Branch1 b CONNECT FULL JOIN PropertyForRent1 p ON b.bCity = p.pCity;","D":"SELECT b.*, p.* FROM Branch1 b CONNECT RIGHT JOIN PropertyForRent1 p ON b.bCity = p.pCity;","E":"SELECT b.*, p.* FROM Branch1 b CONNECT LEFT JOIN PropertyForRent1 p ON b.bCity = p.pCity;","F":"SELECT b.*, p.* FROM Branch1 b RIGHT JOIN PropertyForRent1 p ON b.bCity = p.pCity;","G":"SELECT b.*, p.* FROM Branch1 b WHICH LEFT JOIN PropertyForRent1 p ON b.bCity = p.pCity;"},"c":["A","F"]},
+    {"n":8,"q":"Команды DDL","o":{"A":"PUT","B":"DROP","C":"CREATE","D":"ALTER","E":"INSERT","F":"DELETE","G":"GET","H":"UPDATE"},"c":["B","C","D"]},
+    {"n":9,"q":"Дана таблица Students (ID, Name, Surname, GPA, COURSE):\n1, Yerbol, Urmanov, 2.5, 3\n2, Aidana, Ashirbekova, 3, 3\n3, Marat, Aidosov, 4, 1\n4, Aidos, Kurmanov, 1.4, 4\n5, Elena, Fedorova, 2, 1\n6, Aidar, Elmanov, 3.1, 3\n7, Gaukhar, Khassenova, 2.9, 4\nВыберите все результаты следующего SQL запроса\nSELECT ID FROM Students ORDER BY GPA ASC LIMIT 1;","o":{"A":"4","B":"2","C":"0","D":"2.5","E":"1.4","F":"3"},"c":["A"]},
+    {"n":10,"q":"Дана таблица Students (ID, Name, Surname, GPA, COURSE):\n1, Yerbol, Kazhigerey, 2.5, 3\n2, Aidana, Khassenova, 3, 2\n3, Marat, Aidosov, 4, 1\n4, Aidos, Kurmanov, 1.4, 4\n5, Elena, Fedorova, 2, 1\n6, Aidar, Elmanov, 3.1, 3\n7, Anna, Karenina, 2.1, 2\nВыберите все результаты следующего SQL запроса\nSELECT ID FROM Students WHERE Name='Yerbol' OR Name='Aidana';","o":{"A":"4","B":"Aidosov","C":"3","D":"Marat","E":"1","F":"2","G":"None"},"c":["E","F"]},
+    {"n":11,"q":"В символической записи функциональной зависимости правильные следующие утверждения","o":{"A":"правая часть символической записи функциональной зависимости является зависимостью","B":"правая часть символической записи функциональной зависимости является двоичностью","C":"левая часть символической записи функциональной зависимости является детерминантом","D":"правая часть символической записи функциональной зависимости является детерминантом","E":"правая часть символической записи функциональной зависимости является независимостью","F":"левая часть символической записи функциональной зависимости является зависимостью","G":"левая часть символической записи функциональной зависимости является двоичностью"},"c":["A","C"]},
+    {"n":12,"q":"Основные виды операций над таблицей в реляционной базе данных","o":{"A":"соединение","B":"создание прокси запросов","C":"интеграция","D":"безопасность","E":"сокращение","F":"проекция","G":"защита","H":"балансировка"},"c":["A","E","F"]},
+    {"n":13,"q":"Дана таблица Students (ID, Name, Surname, GPA, COURSE):\n1, Yerbol, Kazhigerey, 2.5, 3\n2, Aidana, Khassenova, 3, 2\n3, Marat, Aidosov, 4, 1\n4, Aidos, Kurmanov, 1.4, 4\n5, Elena, Fedorova, 2, 1\n6, Aidar, Elmanov, 3.1, 3\n7, Anna, Karenina, 2.1, 2\nВыберите все ID, которое возвратит следующий SQL запрос\nSELECT ID FROM Students WHERE COURSE=1;","o":{"A":"6","B":"4","C":"5","D":"7","E":"2","F":"1","G":"3"},"c":["C","G"]},
+    {"n":14,"q":"Операторы позволяют моделировать","o":{"A":"поведение данных в общем плане","B":"бинарные деревья поиска","C":"контейнеры","D":"двоичные деревья поиска","E":"очереди","F":"виды поведения данных","G":"структуру данных"},"c":["A","F"]},
+    {"n":15,"q":"Конструкции, которых нельзя использовать в подзапросах","o":{"A":"MAX","B":"IN","C":"AVG","D":"SELECT *","E":"WHERE","F":"BETWEEN","G":"MIN"},"c":["D","F"]},
+    {"n":16,"q":"То что не относится к агрегатным функциям, используемые в group by","o":{"A":"create","B":"avg","C":"max","D":"count","E":"min","F":"which","G":"sum"},"c":["A","F"]},
+    {"n":17,"q":"Оператор, использовать которого запрещено в подзапросах","o":{"A":"min","B":"select","C":"in","D":"where","E":"having","F":"avg"},"c":["E"]},
+    {"n":18,"q":"Правила третьей нормальной формы","o":{"A":"неключевые атрибуты (если они вообще существуют) являются взаимно независимыми","B":"когда обязательно наличие трех первичных ключей","C":"когда обязательно наличие двух внешних ключей","D":"неключевые атрибуты (если они вообще существуют) являются взаимно зависимыми","E":"когда обязательно наличие двух первичных ключей","F":"неключевые атрибуты (если они вообще существуют) неприводимо зависимы от первичного ключа","G":"когда обязательно наличие трех внешних ключей"},"c":["A","F"]},
+    {"n":19,"q":"Определите атрибуты в этом предложении \"Пожалуйста, назовите фамилию и должность преподавателя.\"","o":{"A":"точка","B":"должность","C":"запятая","D":"назовите","E":"фамилия","F":"преподаватель","G":"пожалуйста"},"c":["B","E"]},
+    {"n":20,"q":"Последовательность выражения, оператора и подзапроса в контексте предикатов с подзапросами","o":{"A":"подзапрос, оператор, выражение","B":"оператор, выражение, подзапрос","C":"выражение, подзапрос, оператор","D":"выражение, оператор, подзапрос","E":"подзапрос, выражение, оператор","F":"между ними нет последовательности"},"c":["D"]}
+  ]
+},
+{
+  "id": "db7", "lang": "ru", "subject": "База данных", "variant": 7,
+  "questions": [
+    {"n":1,"q":"Формальная основа реляционной модели БД, основанная на теории множеств","o":{"A":"реляционная алгебра","B":"логическая алгебра","C":"булева алгебра","D":"операционная алгебра","E":"агрегатная алгебра","F":"иерархическая алгебра"},"c":["A"]},
+    {"n":2,"q":"Виртуальная таблица, содержимое которой определяется запросом","o":{"A":"realtable","B":"tempdb","C":"views","D":"trigger","E":"resource","F":"stored procedure","G":"virtable"},"c":["C"]},
+    {"n":3,"q":"Тип целостности данных проверяющая правильность связей между таблицами","o":{"A":"ссылочная","B":"внешняя","C":"семантическая","D":"примарная","E":"верхняя","F":"доменная"},"c":["A"]},
+    {"n":4,"q":"Если задан ORDER BY, то таблица является только считываемой с","o":{"A":"выполняющими соединениями двух таблиц","B":"заданным порядком упорядочения","C":"изменяющей структурой таблицы","D":"фильтрующими группами столбцов","E":"группирующими строками с одинаковыми значениями столбца","F":"группируемыми строками с одинаковыми значениями столбцов","G":"удаляющими дублирующимися строками из результирующего набора","H":"группирующими строками с одинаковыми значениями столбца или столбцов"},"c":["B"]},
+    {"n":5,"q":"Блокировка фрагмента данных имеет аспекты","o":{"A":"транзакции","B":"планировщик","C":"буфер","D":"режим","E":"длительность","F":"гранулярность"},"c":["D","E","F"]},
+    {"n":6,"q":"Недостатки иерархической модели","o":{"A":"безопасность данных","B":"структурная зависимость","C":"простота понимания структуры данных","D":"каждый узел имеет свое имя (идентификатор)","E":"ограничения в организации отношений между сущностями","F":"независимость данных","G":"целостность данных"},"c":["B","E"]},
+    {"n":7,"q":"Отсортировать документы по типу и дате создания","o":{"A":"ORDER BY Type Documents, CreationDate DESCENDING","B":"ARRANGE BY Documents Type, CreationDate DESC","C":"ORDER BY DocumentsType, CreationDate DESC","D":"ORDER BY DocumentsType, CreationDate","E":"ORDER BY DocumentsType, CreationDate ASC","F":"SORT Documents BY Type, CreationDate DESC"},"c":["C","D","E"]},
+    {"n":8,"q":"Выборка строк с неопределенным значением в столбце","o":{"A":"SELECT * FROM VENDORS WHERE VENDOR IN ('Asus', 'Intel', 'IBM');","B":"SELECT * FROM deliveries ORDER BY amount IS NOT NULL;","C":"SELECT * FROM goodslist WHERE weight IS NULL;","D":"SELECT * FROM VENDORS ORDER BY VENDOR IN ('Asus', 'Intel', 'IBM');","E":"SELECT * FROM deliveries WHERE amount IS NOT NULL;","F":"SELECT * FROM Asus WHERE VENDOR IS NULL;","G":"SELECT * FROM goodslist ORDER BY weight IS NULL;","H":"SELECT * FROM deliveries WHERE amount IS NULL;"},"c":["C","H"]},
+    {"n":9,"q":"Поле представления может содержать агрегированную информацию","o":{"A":"group","B":"acs","C":"max","D":"sum","E":"min","F":"decs"},"c":["C","D","E"]},
+    {"n":10,"q":"Реляционная модель определяется понятиями","o":{"A":"указатели","B":"кардинальность","C":"древовидный граф","D":"атрибут","E":"ссылочный аппарат","F":"коллекция записей","G":"навигационный подход"},"c":["B","D"]},
+    {"n":11,"q":"Основные уровни-компоненты SQL Server","o":{"A":"Server Profiler","B":"Integration Services","C":"ODBCAPI","D":"In-Memory OLTP Engine","E":"Sockets Layer","F":"Query Processor","G":"Storage Engine","H":"Reporting Services"},"c":["D","F","G"]},
+    {"n":12,"q":"Выбрать все категории товаров, для которых суммарное количество заказов больше 10","o":{"A":"SELECT * FROM categories WHERE category id IN (SELECT category_id FROM products WHERE product_id IN (SELECT product_id FROM orders GROUP BY product_id HAVING COUNT() > 10));","B":"SELECT * FROM categories WHERE category_id IN (SELECT category_id FROM orders WHERE COUNT() == 10);","C":"SELECT * FROM categories WHERE category_id IN (SELECT category_id FROM products INNER JOIN orders ON products.product_id = orders.product_id WHERE COUNT() < 10);","D":"SELECT * FROM categories WHERE category_id IN (SELECT category_id FROM products INNER JOIN orders ON products.product_id = orders.product_id GROUP BY category_id HAVING COUNT() > 10);","E":"SELECT * FROM categories, category_id IN (SELECT category id FROM products WHERE product_id IN (SELECT product_id FROM orders GROUP BY product_id) AND COUNT() > 10);","F":"SELECT * FROM categories WHERE category_id IN (SELECT category_id FROM orders GROUP BY category_id HAVING COUNT() = 10);"},"c":["D"]},
+    {"n":13,"q":"Рекомендуемые параметры оценки системы управления базами данных с точки зрения определение данных","o":{"A":"простота реорганизации","B":"поддержка контрольных точек","C":"предусмотренные файловые структуры","D":"расширенная поддержка первичных ключей","E":"определение внешних ключей","F":"поддержка определения файловых структур","G":"предусмотренные типы данных"},"c":["C","E","G"]},
+    {"n":14,"q":"Выбрать все продукты, которые не были заказаны","o":{"A":"SELECT * FROM products WHERE product_id NOT IN (SELECT product_id FROM orders GROUP BY product_id);","B":"SELECT * FROM products WHERE product_id NOT EXISTS (SELECT DISTINCT product_id FROM orders);","C":"SELECT * FROM products WHERE productId NOT EXISTS (SELECT productId FROM orders);","D":"SELECT * FROM products WHERE product_id NOT IN (SELECT product_id FROM orders HAVING COUNT(*) > 0);","E":"SELECT * FROM products WHERE product_id NOT IN (SELECT DISTINCT product_id FROM orders);","F":"SELECT * FROM product WHERE product_id NOT IN (SELECT DISTINCT product_id FROM order);","G":"SELECT * FROM products WHERE productId NOT IN (SELECT DISTINCT productId FROM orders);"},"c":["A","E"]},
+    {"n":15,"q":"Является системным экземпляром сервера, хранит информацию о конфигурации сервера, сведения обо всех учетных записях пользователя, сведения обо всех остальных базах данных","o":{"A":"msdb","B":"model","C":"odbc","D":"master","E":"tempdb","F":"resource"},"c":["D"]},
+    {"n":16,"q":"Количество полей (столбцов) в реляционной модели","o":{"A":"атрибут","B":"отношение","C":"кардинальность","D":"ссылки","E":"домен","F":"степень отношения","G":"первичный ключ","H":"кортеж"},"c":["F"]},
+    {"n":17,"q":"Не относится к агрегирующим функциям","o":{"A":"SUM","B":"MAX","C":"ALL","D":"COUNT","E":"MIN","F":"AVG","G":"ANY","H":"ASC"},"c":["C","G","H"]},
+    {"n":18,"q":"Вильям Армстронг предложил дополнительные полезные правила вывода, которые могут быть получены на основании правил: дополнение, рефлексивность, приращение, транзитивность","o":{"A":"слияние","B":"подмножество","C":"декомпозиция","D":"объединение","E":"псевдотранзитивность","F":"репликация"},"c":["C","D","E"]},
+    {"n":19,"q":"Этап проектирования БД который включает в себя инфологическое и даталогическое проектирования","o":{"A":"концептуальное проектирование","B":"системный анализ","C":"логическое проектирование","D":"аномалия модификации","E":"физическое проектирование","F":"функциональное проектирование","G":"архитектурное проектирование"},"c":["C"]},
+    {"n":20,"q":"Исправление значений в двух столбцах таблицы","o":{"A":"DELETE FROM SUPPLIERS WHERE CURRENT OF SUPPLIERS_CURSOR","B":"UPDATE ENAME SET FNAME='JON', LNAME='JONS' WHERE ENAME_ID=67;","C":"UPDATE GOODSLIST SET WEIGHT=100, GROSSWEIGHT=110 WHERE GOODSLIST_ID=2567;","D":"CREATE DATABASE 'WAREHOUSE';","E":"UPDATE SUPPLER SET STATUS=100, CITY=110 WHERE SUPPLER_ID=25;","F":"CREATE DOMAIND_DATE AS DATE DEFAULT current_date;","G":"DELETE TABLE PEOPLES (IndNum int, Surname char(30), FName char(20), LName char(20), BDay date);","H":"REMOVE DATABASE 'WAREHOUSE';"},"c":["B","C","E"]}
+  ]
+},
+{
+  "id": "alg1", "lang": "ru", "subject": "Алгоритмы и структуры данных", "variant": 1,
+  "questions": [
+    {"n":1,"q":"Результат следующего кода: Int x=5; Alert(«x равен » +x)","o":{"A":"x равен 6","B":"x равен 1","C":"x равен 0","D":"x равен 9","E":"x равен 5"},"c":["E"]},
+    {"n":2,"q":"Обязательные свойства каждой переменной","o":{"A":"размер","B":"тип, размер, спецификатор знака","C":"спецификатор знака","D":"тип","E":"тип, размер, имя, значение"},"c":["E"]},
+    {"n":3,"q":"Изменение управляющей переменной в цикле от 20 до 2 с шагом -2","o":{"A":"for (int i = 20; i >=2; i =- 2)","B":"for (int i = 20; i >2; i -= 2)","C":"for (int i = 20; i >=2; i -= 2)","D":"for (int i = 20; i <=2; i -= 2)","E":"for (int i = 2; i >=20; i -= 2)"},"c":["C"]},
+    {"n":4,"q":"Результат операции\nint x=1, y=2, z=3;\nint a=x+y-2/2+z;\ncout<<a<<endl;","o":{"A":"3.5","B":"3","C":"4","D":"1","E":"5"},"c":["E"]},
+    {"n":5,"q":"Оператор следующей блок-схемы (counter = 1; проверка counter<=10; тело цикла cout << counter; изменение counter++)","o":{"A":"do/while","B":"if","C":"if/else if","D":"for","E":"if/else"},"c":["D"]},
+    {"n":6,"q":"Дан фрагмент кода:\nint a=1234;\nint i=0;\nwhile(a){\ni++;\na/=10;\n}\nCout<<i<<endl;\nВывод программы","o":{"A":"1234","B":"3","C":"4","D":"5","E":"10"},"c":["C"]},
+    {"n":7,"q":"Оператор используемый для выполнения условия","o":{"A":"if","B":"goto","C":"tnen","D":"else","E":"run"},"c":["A"]},
+    {"n":8,"q":"Объект в Java создается с указанием имени класса ключевым словом","o":{"A":"new","B":"begin","C":"load","D":"program","E":"start"},"c":["A"]},
+    {"n":9,"q":"Имена всех элементов массива второй строки целых чисел t размером 3 на 4 записываются следующим образом","o":{"A":"t[1][0], t[1][1], t[1][2], t[1][3]","B":"t[1,0], t[1,1], t[1,2], t[1, 3]","C":"t[2,1], t[2,2], t[2,3], t[2,4]","D":"t[2][1], t[2][2], t[2][3], t[2][4]","E":"t[2][0], t[2][1], t[2][2], t[2][3]"},"c":["A"]},
+    {"n":10,"q":"Заголовочный файл, содержащий макросы и информацию для дополнительной диагностики, помогающей при отладке программы","o":{"A":"<errno.h>","B":"<signal.h>","C":"<limits.h>","D":"<assert.h>","E":"<setjmp.h>"},"c":["D"]},
+    {"n":11,"q":"Результат выполнения оператора x = pow(2, 7) будет равен","o":{"A":"128","B":"255","C":"64","D":"256","E":"127"},"c":["A"]},
+    {"n":12,"q":"Вставка элемента в неупорядоченный массив","o":{"A":"требует сдвига других элементов для освобождения места","B":"требует нескольких сравнений","C":"выполняется за постоянное время независимо от количества элементов","D":"требует лишнее время","E":"выполняется за время, пропорциональное размеру массива"},"c":["C"]},
+    {"n":13,"q":"bool Func(A,x)\nЦикл по j, j←1, j<n, j←j+1\nif(Ai==x)\nthen return true;\nreturn false;","o":{"A":"сортировка вставкой","B":"линейный поиск","C":"двоичный поиск","D":"пузырьковая сортировка","E":"сортировка кучей"},"c":["B"]},
+    {"n":14,"q":"Разбиением массива называется","o":{"A":"деление элементов массива на несколько групп","B":"последовательная сортировка","C":"удаление одного элемента массива","D":"сортировка вставкой","E":"сортировка массива пузырьком"},"c":["A"]},
+    {"n":15,"q":"Ш1 [Цикл по i]. COUNT[i]←0, i←1 to N\nШ2 [Цикл по i]. Выполнить шаг 3(Ш3) i←N downto 2\nШ3 [Цикл по j]. Выполнить шаг 4(Ш4) j←i-1 downto 1\nШ4 if Ki<Kj then COUNT[j]++ else COUNT[i]++","o":{"A":"сортировка вставкой","B":"двоичный поиск","C":"алгоритм подсчета сравнений","D":"быстрая сортировка","E":"поразрядная сортировка"},"c":["C"]},
+    {"n":16,"q":"Сложность сортировки вставкой","o":{"A":"O(n)","B":"O(n²)","C":"O(n!)","D":"O(eˣ)","E":"O(nlogn)"},"c":["B"]},
+    {"n":17,"q":"Сложность сортировки слиянием","o":{"A":"O(n logn)","B":"O(1)","C":"O(n³)","D":"O(logn)","E":"O(n²)"},"c":["A"]},
+    {"n":18,"q":"В языке Си при формировании программы вы будете использовать следующие «строительные блоки» (неправильный ответ)","o":{"A":"функции, сохранённые другим пользователем","B":"функции, которые были использованы ранее","C":"функции стандартной библиотеки Си","D":"функции, написанные другими людьми","E":"функции, которые вы создадите сами"},"c":["A"]},
+    {"n":19,"q":"Структура данных типа LIFO известна как","o":{"A":"множество","B":"список","C":"массив","D":"стек","E":"очередь"},"c":["D"]},
+    {"n":20,"q":"Выберите правильную запись обращения к элементу одномерного массива в языке Си","o":{"A":"b[2,3]","B":"b[3]","C":"b(2,3)","D":"b[1,2]","E":"b[1]"},"c":["B"]},
+    {"n":21,"q":"Присоединение содержимого одной строки к другой строке осуществляется с помощью функции","o":{"A":"strlen()","B":"strcat()","C":"strlength()","D":"strcpy;","E":"strcmp()"},"c":["B"]},
+    {"n":22,"q":"Внешний внук","o":{"A":"является верхним потомком правого потомка (или наоборот)","B":"является левым потомком правого потомка (или наоборот)","C":"находится на противоположной стороне от своего родителя, чем его «брат» по отношению к их «предкам»","D":"находится на той же стороне от своего родителя, что и его родитель по отношению к своему родителю","E":"находится на другой стороне от своего родителя, чем его родитель по отношению к своему «брату»"},"c":["D"]},
+    {"n":23,"q":"Процедура поиска пустых ячеек, находящихся на больших расстояниях (вместо ячеек, находящихся вблизи от исходной позиции хеширования) при решении коллизии, известна как","o":{"A":"линейное пробирование","B":"открытая адресация","C":"двойное хеширование","D":"метод цепочек","E":"квадратичное пробирование"},"c":["C"]},
+    {"n":24,"q":"Пример обобщенного алгоритма","o":{"A":"2x+3=0","B":"5x⁴+2x=0","C":"5x²=0","D":"ax²+bx+c=0","E":"6x³=0"},"c":["D"]},
+    {"n":25,"q":"Время поиска в AVL-дереве","o":{"A":"O(N²)","B":"O(N)","C":"O(N³)","D":"O(N logN)","E":"O(logN)"},"c":["E"]},
+    {"n":26,"q":"Программа это","o":{"A":"алгоритм который переведенный к природному языку","B":"блок-схема","C":"устройство","D":"указания данное к пользователю","E":"алгоритм на понятном языке для компьютера"},"c":["E"]},
+    {"n":27,"q":"Вид алгоритма вычисления многочленов","o":{"A":"разветвляющий","B":"циклический","C":"дополнительный","D":"условный","E":"линейный"},"c":["B"]},
+    {"n":28,"q":"Алгоритм, решающий задачу о кратчайших путях из одной вершины для взвешенного ориентированного графа G=(V,E) исходной вершиной s, в котором веса всех ребер неотрицательны","o":{"A":"алгоритм Прима","B":"алгоритм Дейкстры","C":"алгоритм Крускала","D":"алгоритм Белмана-Форда","E":"алгоритм Флойд-Уоршолла"},"c":["B"]},
+    {"n":29,"q":"Последний узел пирамиды","o":{"A":"всегда находится на среднем уровне","B":"всегда является левым потомком","C":"никогда не бывает меньше своего «брата»","D":"всегда находится на нижнем уровне","E":"всегда является правым потомком"},"c":["D"]},
+    {"n":30,"q":"Пирамида может быть представлена в виде массива, потому что пирамида","o":{"A":"является троичным деревом","B":"не удовлетворяет условию пирамиды","C":"полная","D":"является двоичным деревом","E":"обладает слабой упорядоченностью"},"c":["C"]}
+  ]
+},
+{
+  "id": "alg2", "lang": "ru", "subject": "Алгоритмы и структуры данных", "variant": 2,
+  "questions": [
+    {"n":1,"q":"Правильный пример целого числа","o":{"A":"-11","B":"-10.6","C":"3/4","D":"9.2","E":"87,6"},"c":["A"]},
+    {"n":2,"q":"Правильный идентификатор на языке программирования С++","o":{"A":"Galina_Pachshenko","B":"Diana@Kim","C":"Kirill&first","D":"Resul#t","E":"identificator*five"},"c":["A"]},
+    {"n":3,"q":"Операция, устанавливающая биты со значением 1 в 0, а биты со значением 0 в 1","o":{"A":"логическое ИЛИ","B":"поразрядное И","C":"поразрядное НЕ","D":"логическое НЕ","E":"логическое И"},"c":["C"]},
+    {"n":4,"q":"Объект входного потока данных на языке программирования С++","o":{"A":"cout","B":"return","C":"switch","D":"cin","E":"do"},"c":["D"]},
+    {"n":5,"q":"Оператор присваивания на языке программирования С++","o":{"A":"result","B":"=","C":"is","D":"do","E":"=="},"c":["B"]},
+    {"n":6,"q":"Составная операция умножения","o":{"A":"*=","B":"=*","C":"*","D":"multiply","E":"+="},"c":["A"]},
+    {"n":7,"q":"Метод класса string возвращающий количество символов строки на языке программирования С++","o":{"A":"eof()","B":"length()","C":"get()","D":"data()","E":"max()"},"c":["B"]},
+    {"n":8,"q":"Объявление одномерного массива и инициализация элементов","o":{"A":"int a[65, 64, 11, 43, 39, -15 ,-100 ,125, 150, -250];","B":"int a[10]={65, 64, 11, 43, 39, -15 ,-100 ,125, 150, -250};","C":"int a[10]=\"65, 64, 11, 43, 39, -15 ,-100 ,125, 150, -250\";","D":"int a[10]=/65, 64, 11, 43, 39, -15 ,-100 ,125, 150, -250/;","E":"int a[10]=65, 64, 11, 43, 39, -15 ,-100 ,125, 150, -250;"},"c":["B"]},
+    {"n":9,"q":"Цикл для ввода элементов двумерного массива на языке программирования С++","o":{"A":"for(int i=0; i<3; i++)for(int j=0; j<3; j++) cin>>a[i][j];","B":"for(int i=0; i<3; i++)for(int j=0; j<3; j++) cout<<a[i][j];","C":"for(int i=0; i<3; i++)for(int j=0; j<3; j++) cout>>a[i][j];","D":"for(int i=0; j<3; i++)for(int j=0; i<3; j++) cin>>a[i][i];","E":"for(int i=0; i<3; i++)for(int j=0; i<3; i++) cout>>a[i][j];"},"c":["A"]},
+    {"n":10,"q":"На языке программирования С++ функция, генерирующая целое число, лежащее в интервале от 0 до значения RAND_MAX, которое определяется равным по меньшей мере 32767","o":{"A":"size","B":"max","C":"stdlib.h","D":"time","E":"rand"},"c":["E"]},
+    {"n":11,"q":"Шаг, когда функция вызывает новую копию самой себя, чтобы начать работать над меньшей проблемой","o":{"A":"встроенная функция","B":"оператор перехода","C":"копирование","D":"рекурсивный вызов","E":"прототип функции"},"c":["D"]},
+    {"n":12,"q":"Встраиваемые функции на языке программирования С++","o":{"A":"in","B":"global","C":"static","D":"inline","E":"str"},"c":["D"]},
+    {"n":13,"q":"Способ сортировки, при котором сначала выделяется наименьший (или наибольший) элемент и каким-либо образом отделяется от остальных, затем выбирается наименьший (наибольший) из оставшихся и т. д.","o":{"A":"сортировка методом вставок","B":"симметричная сортировка","C":"обменная сортировка","D":"сортировка посредством выбора","E":"сортировка путем подсчета"},"c":["D"]},
+    {"n":14,"q":"Алгоритм поиска, при котором сравнивается каждый элемент массива с ключом поиска","o":{"A":"поиск вставкой","B":"симметричный поиск","C":"линейный поиск","D":"радиальный поиск","E":"двончный поиск"},"c":["C"]},
+    {"n":15,"q":"Алгоритм поиска, который исключает половину элементов массива после каждого сравнения","o":{"A":"двоичный поиск","B":"линейный поиск","C":"симметричный поиск","D":"радиальный поиск","E":"поиск по наименьшему значению"},"c":["A"]},
+    {"n":16,"q":"Количество рекурсивных вызовов, которое должно быть выполнено для вычисления n-го числа Фибоначчи, оказывается порядка O(2ⁿ), называется","o":{"A":"константная сложность","B":"квадратичная сложность","C":"кубическая сложность","D":"экспоненциальная сложность","E":"линейная сложность"},"c":["D"]},
+    {"n":17,"q":"Квадратичная сложность алгоритма в O-синтаксисе","o":{"A":"O(n!)","B":"O(n)","C":"O(2ⁿ)","D":"O(log n)","E":"O(n²)"},"c":["E"]},
+    {"n":18,"q":"Метод сортировки со сложностью алгоритма O(n²)","o":{"A":"пирамидальный","B":"пузырковый","C":"слияния","D":"двоичного дерева","E":"быстрый"},"c":["B"]},
+    {"n":19,"q":"Линейный список, в котором все операции вставки и удаления выполняются на обоих концах списка","o":{"A":"двусторонняя очередь","B":"стек","C":"вектор","D":"односторонняя очередь","E":"массив"},"c":["A"]},
+    {"n":20,"q":"Чтобы обозначить дно стека, элемент указатель связи последнего узла списка устанавливается в значение","o":{"A":"минус единица","B":"end","C":"единица","D":"bottom","E":"нуль"},"c":["E"]},
+    {"n":21,"q":"Особый узел, который должен содержать каждый циклический список","o":{"A":"заголовок списка","B":"нулевой узел","C":"регистратор списка","D":"узел разветвления","E":"корень списка"},"c":["A"]},
+    {"n":22,"q":"Популярный класс методов поиска имеет общее название","o":{"A":"хеширование","B":"полиморфизм","C":"объявление","D":"присваивание","E":"инициализация"},"c":["A"]},
+    {"n":23,"q":"Разновидности открытой адресации, различающиеся способом поиска следующей свободной ячейки","o":{"A":"линейное пробирование, квадратичное пробирование и двойное хеширование","B":"линейное пробирование, симметричное пробирование и двойное хеширование","C":"линейное пробирование, полиноминальное пробирование и двойное хеширование","D":"линейное пробирование, линейное пробирование и квадратичное хеширование","E":"линейное пробирование, квадратичное пробирование и тройное хеширование"},"c":["A"]},
+    {"n":24,"q":"Отношение количества элементов данных в хеш-таблице к размеру массива","o":{"A":"коэффициент подобия","B":"относительный коэффициент","C":"коэффициент заполнения","D":"коэффициент индексации","E":"коэффициент хеширования"},"c":["C"]},
+    {"n":25,"q":"Первым узлом дерева является","o":{"A":"произвольно выбранный узел","B":"центральный узел","C":"наибольший узел","D":"корневой узел","E":"средний узел"},"c":["D"]},
+    {"n":26,"q":"Если значение в левом узле-потомке меньше значения в его родительском узле, а значение в правом узле-потомке больше или равно значению в его родительском узле, то это характеризует","o":{"A":"двумерный массив","B":"одномерный массив","C":"дерево двоичного поиска","D":"очередь","E":"стек"},"c":["C"]},
+    {"n":27,"q":"Один из видов из самобалансирующихся двоичных деревьев поиска, гарантирующих логарифмический рост высоты дерева от числа узлов и позволяющее быстро выполнять основные операции дерева поиска: добавление, удаление и поиск узла, где сбалансированность достигается за счёт введения дополнительного атрибута узла дерева — «цвета»","o":{"A":"поддерево","B":"одномерный массив","C":"двумерный массив","D":"двоичная куча","E":"красно-черное дерево"},"c":["E"]},
+    {"n":28,"q":"Две вершины в графе соединяющие ребро","o":{"A":"равноудаленные","B":"соединительные","C":"смежные","D":"соседние","E":"равноправные"},"c":["C"]},
+    {"n":29,"q":"Один из методов обхода графа, при котором алгоритм стремится держаться как можно ближе к исходной вершине, посещает все вершины, смежные с исходной, и только после этого отходит дальше","o":{"A":"метод наименьших квадратов","B":"метод прямого распространения","C":"поиск в ширину","D":"симметричный поиск","E":"поиск в глубину"},"c":["C"]},
+    {"n":30,"q":"Алгоритм построения минимального остовного дерева взвешенного связного неориентированного графа","o":{"A":"алгоритм Беллмана — Форда","B":"алгоритм Флойда","C":"алгоритм Дейкстры","D":"алгоритм Прима","E":"алгоритм Шелла"},"c":["D"]}
+  ]
+},
+{
+  "id": "alg3", "lang": "ru", "subject": "Алгоритмы и структуры данных", "variant": 3,
+  "questions": [
+    {"n":1,"q":"Выполнение каждой программы на С++ начинается с использования функции","o":{"A":"begin","B":"first","C":"init","D":"start","E":"main"},"c":["E"]},
+    {"n":2,"q":"Объявлена переменная:\nunsigned int a=-5;\nЗначение переменной a","o":{"A":"компилятор переведет число в очень большое положительное число","B":"данное присваивание недопустимо","C":"5","D":"0","E":"-5"},"c":["A"]},
+    {"n":3,"q":"Следующая директива отказывается от символических констант и макросов","o":{"A":"#include","B":"#define","C":"ifdef","D":"#undef","E":"#file"},"c":["D"]},
+    {"n":4,"q":"Результат операции\ndouble x=2, y=1.5, z=0;\nz=2pow(x, 3)+y;\ncout<<z<<enld;","o":{"A":"3.5","B":"ошибка, пропущен знак умножения","C":"0","D":"17.5","E":"1.5"},"c":["B"]},
+    {"n":5,"q":"Дан фрагмент кода:\nint i, j;\nfor(i=0, j=10; i<=j; i++, j--){\ncout<<i<<\" \";\n}\nРезультат программы","o":{"A":"0 1 2 3 4 5","B":"0 1 2 3 4","C":"1 2 3 4 5 6","D":"1 2 3 4 5","E":"0 1 2 3 4 5 6"},"c":["A"]},
+    {"n":6,"q":"Результат операции\nint a=0, b=1, c=2, d=3, e=4;\na=(b++, c++, d++, e++);\ncout<<\"a=\"<<a<<endl;","o":{"A":"1","B":"10","C":"4","D":"2","E":"5"},"c":["C"]},
+    {"n":7,"q":"Дан массив:\nint a[10] = {6, 5, 4, 3, 2};\nВсе значения в ячейках массива a","o":{"A":"6 5 4 3 2","B":"6 5 4 3 2 6 5 4 3 2","C":"6 5 4 3 2 2 3 4 5 6","D":"0 0 0 0 0 0 0 0 0 0","E":"6 5 4 3 2 0 0 0 0 0"},"c":["E"]},
+    {"n":8,"q":"В результате выполнения оператора product /= ++x; при начальных значениях всех переменных равных 5, переменные примут значения","o":{"A":"product = 0, x = 6","B":"product = 25, x = 5","C":"product = 31, x = 5","D":"product = 0, x = 5","E":"product = 30, x = 5"},"c":["A"]},
+    {"n":9,"q":"Результат операции\nfor(int i=0;i<3;++i){\nfor(int j=0;j<i+1;++j)\n cout<<\"*\";\ncout<<endl;\n}","o":{"A":"ошибка","B":"*\\n**\\n***","C":"******","D":"**\\n**\\n**","E":"***\\n***"},"c":["B"]},
+    {"n":10,"q":"Библиотека для функции rand()","o":{"A":"csdtlib","B":"cmath","C":"algorithm","D":"cstdio","E":"iostream"},"c":["A"]},
+    {"n":11,"q":"В объектно-ориентированном программировании объект","o":{"A":"эквивалентен атрибуту","B":"является программой","C":"может содержать классы","D":"может содержать даты и методы","E":"является командой"},"c":["D"]},
+    {"n":12,"q":"В сортировке методом вставки термин «частичная сортировка» означает, что","o":{"A":"отсортированы парные элементы","B":"большинство элементов находится в своих окончательных позициях сортировки, но некоторые из них еще требуют выполнения сортировки","C":"отсортированы только некоторые из элементов","D":"элементы группы отсортированы между собой, но возможно, в группу еще придется вставлять элементы, находящиеся за ее пределами","E":"некоторые элементы уже отсортированы, но, возможно, их еще придется перемещать"},"c":["D"]},
+    {"n":13,"q":"Алгоритм поиска, при котором каждый элемент массива сравнивается с ключом поиска известен как","o":{"A":"поиск с вставками","B":"двоичный поиск","C":"линейный поиск","D":"быстрый поиск","E":"поиск посредством выбора"},"c":["C"]},
+    {"n":14,"q":"Если большие ключи сгруппированы справа, то индексом разбиения называется","o":{"A":"значение ключа левого элемента правого подмассива","B":"значение ключа левого элемента двухстороннего массива","C":"значение ключа элемента между левым и правым подмассивами","D":"индекс элемента между левым и правым подмассивами","E":"индекс левого элемента правого подмассива"},"c":["E"]},
+    {"n":15,"q":"Цикл while завершается когда индекс находит элемент","o":{"A":"для удаления","B":"удовлетворяющий условию","C":"для команды исполнения","D":"случайный выполнении команд","E":"для вставки"},"c":["B"]},
+    {"n":16,"q":"Ошибка оператора присваивания","o":{"A":"1:=a;","B":"A:=1;","C":"A:=a+b;","D":"a:=a+1;","E":"a:=a+a;"},"c":["A"]},
+    {"n":17,"q":"В «О-синтаксисе» сортировка методом выбора выполняется за время","o":{"A":"O(logN)","B":"O(N/2)","C":"O(N)","D":"O(1)","E":"O(N²)"},"c":["E"]},
+    {"n":18,"q":"В «О-синтаксисе» удаление в упорядоченном массиве выполняется за время","o":{"A":"O(N)","B":"O(logN)","C":"O(N/2)","D":"O(1)","E":"O(N²)"},"c":["A"]},
+    {"n":19,"q":"Записывается однострочный комментарий в языке Си после символов","o":{"A":"**","B":"{*","C":":)","D":"//","E":"( *"},"c":["D"]},
+    {"n":20,"q":"В сбалансированном дереве","o":{"A":"пути от корня до всех листовых узлов имеют разную длину","B":"высота всех поддеревьев жестко контролируется","C":"все левые поддеревья имеют такую же высоту, как и все правые поддеревья","D":"пути от корня до всех листовых узлов имеют примерно одинаковую длину","E":"может потребоваться изменение структуры дерева при поиске"},"c":["D"]},
+    {"n":21,"q":"Если в элементах хранится ссылка на предыдущий элемент, то для удаления элемента с наибольшим ключом потребуется","o":{"A":"5 перемещений по односвязному списку","B":"3 перемещения по односвязному списку","C":"2 перемещения по односвязному списку","D":"1 перемещение по односвязному списку","E":"4 перемещения по односвязному списку"},"c":["D"]},
+    {"n":22,"q":"При обращении к данным, хранящимся на диске происходит","o":{"A":"поиск места для записи данных выполняется относительно медленно, но существует возможность записи большого объема данных","B":"перемещение данных с целью освобождения места под новые данные выполняется быстро благодаря возможности одновременного обращения ко многим записям","C":"удаление данных выполняется особенно быстро","D":"вставка выполняется медленно, но позиция для записи данных находится быстро","E":"добавление данных выполняется особенно быстро"},"c":["A"]},
+    {"n":23,"q":"На рисунке приведен пример решения столкновений в хеш таблице следующим образом (показаны схемы а и б с начальной пробой)","o":{"A":"линейное зондирование","B":"квадратичное зондирование","C":"открытая адресация","D":"двойное хеширование","E":"отдельная цепочка"},"c":["C"]},
+    {"n":24,"q":"Рассмотрим хеш-таблицу с n ячейками, в которой коллизии разрешаются с помощью цепочек. Хеширование равномерно: каждый новый ключ имеет равные шансы попасть во все ячейки независимо от предыдущих. Пусть M – максимальная длина цепочек после добавление n ключей. Математическое ожидание M","o":{"A":"O(n!)","B":"O(nlogn)","C":"O(n)","D":"O(n²)","E":"O(lg n/lg lg n)"},"c":["E"]},
+    {"n":25,"q":"Набор меток и символов которые используется в алгоритмическом языке","o":{"A":"конструкция","B":"семантика","C":"алфавит языка","D":"команда","E":"рабочая область"},"c":["C"]},
+    {"n":26,"q":"Начальные данные","o":{"A":"индивидуальный алгоритм","B":"результаты задачи","C":"интервальное значение задачи","D":"данные задачи","E":"команда"},"c":["D"]},
+    {"n":27,"q":"Понятия языка","o":{"A":"блок-схема","B":"величина","C":"инструмент выражения и представления информации","D":"программа","E":"вид алгоритма"},"c":["C"]},
+    {"n":28,"q":"Множество V в ориентированном графе G = (V, E) представляет","o":{"A":"дуги графа","B":"путь графа","C":"вершины графа","D":"ребра графа","E":"объекты графа"},"c":["C"]},
+    {"n":29,"q":"Версия алгоритма Дейкстры с использованием матрицы смежности находит все кратчайшие пути орграфа с n вершинами за время порядка","o":{"A":"O(logn)","B":"O(n)","C":"O(n²)","D":"O(logn²)","E":"O(n³)"},"c":["C"]},
+    {"n":30,"q":"Цепочка примера структуры данных","o":{"A":"массивы, стеки и связанные файлы","B":"массивы, стеки и связанные фамилия","C":"массивы, стеки и связанные ключи","D":"массивы, стеки и связанные списки","E":"массивы, стеки и записанные поля"},"c":["D"]}
+  ]
+},
+{
+  "id": "alg4", "lang": "ru", "subject": "Алгоритмы и структуры данных", "variant": 4,
+  "questions": [
+    {"n":1,"q":"Количество операций сравнения, выполняемое быстрой сортировкой для файла размером N в наихудшем случае","o":{"A":"N/4","B":"N²/2","C":"N/3","D":"N/2","E":"N³/2"},"c":["B"]},
+    {"n":2,"q":"Стандартная библиотека С, позволяющая модифицировать программу в зависимости от места её выполнения","o":{"A":"<local.h>","B":"<stdloc.h>","C":"<locale.h>","D":"<loctime.h>","E":"<clocale.h>"},"c":["C"]},
+    {"n":3,"q":"Структура множественного выбора в C++, при котором значение некоторой переменной или выражения проверяется на множестве допустимых значений и в зависимости от результатов проверки предпринимаются различные действия","o":{"A":"while","B":"grade","C":"square","D":"for","E":"switch"},"c":["E"]},
+    {"n":4,"q":"Деревья, узлы которых содержат две связки (одна из которых или обе могут быть нулевыми)","o":{"A":"кустистые","B":"ветвящиеся","C":"корневые","D":"двоичные","E":"листовые"},"c":["D"]},
+    {"n":5,"q":"Математическая структура, состоящая из множества точек, которые называются вершинами, и совокупности линий (ребер), соединяющих эти точки","o":{"A":"куст","B":"маршрут","C":"граф","D":"шаблон","E":"схема"},"c":["C"]},
+    {"n":6,"q":"Вставки и удаления в стеке производятся","o":{"A":"только в конце","B":"в любом месте","C":"в начале или в конце","D":"в середине","E":"только в его вершине"},"c":["E"]},
+    {"n":7,"q":"Алгоритм, не использующий операцию сравнения ключей и упорядочивающий последовательности неотрицательных целых чисел","o":{"A":"сортировка вливанием","B":"сортировка кучей","C":"выборочная сортировка","D":"сортировка пузырьками","E":"сортировка подсчётом"},"c":["E"]},
+    {"n":8,"q":"Класс сложности алгоритма, обрабатывающего все подмножества некоторого множества из n элементов","o":{"A":"экспоненциальная","B":"параболическая","C":"линеарная","D":"восьмеричная","E":"факториальная"},"c":["A"]},
+    {"n":9,"q":"Наименьший элемент массива меняется местами с первым элементом. Наименьший элемент из остальных элементов переставляется со вторым элементом в исходном массиве и т.д.","o":{"A":"сортировка вставками","B":"сортировка пузырьками","C":"распределяющая сортировка","D":"индексная сортировка","E":"сортировка выбором"},"c":["E"]},
+    {"n":10,"q":"Объявление массива с числом элементов arraySize типа float, имеющими нулевые начальные значения","o":{"A":"float table [arraySize] = {0};","B":"float [arraySize] = {0};","C":"float table [arraySize] = {0,..,0};","D":"float mv [arraySize] = {0,0};","E":"float mv [arraySize] = {};"},"c":["A"]},
+    {"n":11,"q":"Метод построения хеш-таблиц для статических множеств ключей, обеспечивающий выполнение поиска за время O(1) даже в худшем случае","o":{"A":"идеальное, или совершенное хеширование","B":"нелинейное, или совершенное зондирование","C":"линейное, или совершенное зондирование","D":"билинейная, или отдельная цепочка","E":"тернарное, или совершенное хеширование"},"c":["A"]},
+    {"n":12,"q":"Текущее множество рёбер устанавливается пустым. Затем из всех рёбер, добавление которых к уже имеющемуся множеству не вызовет появление в нём цикла, выбирается ребро минимального веса – это алгоритм","o":{"A":"Форда","B":"Фрейда","C":"Белмана","D":"Крускала","E":"Дейтла"},"c":["D"]},
+    {"n":13,"q":"Каждый объект C++ имеет доступ к своему собственному адресу через указатель с именем","o":{"A":"adress","B":"intr","C":"setpr","D":"cout","E":"this"},"c":["E"]},
+    {"n":14,"q":"Операция, в ходе которой байты пересылаются из оперативной памяти на устройства (например, экран дисплея, дисковод, принтер)","o":{"A":"рекурсия","B":"вывод","C":"инверсия","D":"ввод","E":"инкапсуляция"},"c":["B"]},
+    {"n":15,"q":"Для большинства хеш-функций пространство ключей представляется множеством ….","o":{"A":"N={0,1,2….}","B":"рациональных чисел","C":"комплексных чисел","D":"Z={…. -2,-1,0,1,2….}","E":"действительных чисел"},"c":["A"]},
+    {"n":16,"q":"Методы разрешения коллизий","o":{"A":"закрытой адресации, цепочки, линейного исследования","B":"адресации, удаления, линейноого возрастания","C":"открытой адресации, цепочки, линейного исследования","D":"закрытой адресации, ветвления, линейного исследования","E":"кубического исследования, двоичного хеширования"},"c":["C"]},
+    {"n":17,"q":"Математическая библиотечная функция С, возводящая x в степень y","o":{"A":"pow(x/y)","B":"pow(x;y)","C":"pow(x?y)","D":"pow(y,x)","E":"pow(x,y)"},"c":["E"]},
+    {"n":18,"q":"Выбор хеш-функции зависит от","o":{"A":"типа ключа","B":"индекса ключа","C":"вида данных","D":"размера массива","E":"типа переменной"},"c":["A"]},
+    {"n":19,"q":"Рекурсивное определение последовательности Фибоначчи","o":{"A":"fibonacci (0)=0; fibonacci (1)=1; fibonacci (n)= fibonacci (n-1) + fibonacci (n-2)","B":"fibonacci (0)=0; fibonacci (1)=1; fibonacci (n)= fibonacci (n+1) + fibonacci (n+2)","C":"fibonacci (0)=1; fibonacci (1)=0; fibonacci (n)= fibonacci (n+1) + fibonacci (n+2)","D":"fibonacci (0)=0; fibonacci (1)=1; fibonacci (n)= fibonacci (n-1) - fibonacci (n-2)","E":"fibonacci (0)=1; fibonacci (1)=2; fibonacci (n)= fibonacci (n-1) - fibonacci (n-2)"},"c":["A"]},
+    {"n":20,"q":"Заголовочный файл, содержащий основную информацию необходимую для всех операций ввода-вывода в С++","o":{"A":"<ostream.h>","B":"<iostream.h>","C":"<inalude.h>","D":"<istdlib.h>","E":"<imanip.h>"},"c":["B"]},
+    {"n":21,"q":"Группа операторов, которая выполняется повторно до тех пор, пока удовлетворяется некоторое условие","o":{"A":"индукция","B":"рефлексия","C":"рекурсия","D":"метка","E":"цикл"},"c":["E"]},
+    {"n":22,"q":"В C++ макрос, который вызывается перед обработкой списка с переменым числом параметров","o":{"A":"va_sign","B":"va_endl","C":"va_start","D":"va_argv","E":"va_make"},"c":["C"]},
+    {"n":23,"q":"Время выполнения программы, все инструкции которой выполняются один или несколько раз","o":{"A":"квадратично","B":"линейно","C":"постоянно","D":"NlogN","E":"logarithmic"},"c":["B"]},
+    {"n":24,"q":"Древовидная структура данных, в которой значения всех узлов, размещённых правее некоторого узла, больше значений узлов, размещённых левее, причём это справедливо как для всего дерева, так и для любой его части - это","o":{"A":"тернарная система векторов","B":"стек красных деревьев","C":"очередь связных цепочек","D":"многозадачный симплекс","E":"двоичное дерево поиска"},"c":["E"]},
+    {"n":25,"q":"Абстрактный тип данных, представляющий собой список, в котором вставка и удаление элементов производятся с одного конца. Функционирует по принципу «последним пришёл – первым вышел»","o":{"A":"таблица (table)","B":"порядок (order)","C":"стек (stack)","D":"очередь (queue)","E":"куча (coach)"},"c":["C"]},
+    {"n":26,"q":"Описание взвешенного направленного циклического графа, показанного на рисунке (1→2: 0.20, 1→3: 0.30, 1→4: 0.10, 4→2: 0.33, 4→3: 0.15)","o":{"A":"(1, 2, 0.30), (1, 3, 0.30), (1, 4, 0.10), (4, 2, 0.33), (4, 3, 0.15)","B":"(1, 4, 0.30), (1, 2, 0.20), (1, 3, 0.30), (4, 2, 0.33), (4, 3, 0.15)","C":"(1, 2, 0.20), (1, 3, 0.30), (1, 4, 0.10), (4, 2, 0.33), (4, 3, 0.25)","D":"(1, 2, 0.20), (1, 3, 0.30), (1, 4, 0.10), (4, 2, 0.33), (4, 3, 0.15)","E":"(1, 2, 0.30), (1, 3, 0.20), (1, 4, 0.10), (4, 2, 0.30), (4, 3, 0.15)"},"c":["D"]},
+    {"n":27,"q":"Вызывает сама себя либо непосредственно, либо косвенно с помощью другой функции","o":{"A":"рекурсия","B":"индукция","C":"дедукция","D":"итерация","E":"инверсия"},"c":["A"]},
+    {"n":28,"q":"Переменные, содержащие адреса других переменных или функций","o":{"A":"константы","B":"функции","C":"указатели","D":"разделители","E":"выражения"},"c":["C"]},
+    {"n":29,"q":"Характеристика качества алгоритма, отражающая объем потребляемой памяти","o":{"A":"временная эффективность (time efficiency)","B":"линейная эффективность (linear efficiency)","C":"пространственная эффективность (space efficiency)","D":"максимальная эффективность (max efficiency)","E":"минимальная эффективность (min efficiency)"},"c":["C"]},
+    {"n":30,"q":"Пользовательская функция, написанная на языке С++, проводит операцию над всеми числами в диапазоне от 1 до 10\n#include<iostream.h>\nint square (int);\nint main()\n{\nfor (int x = 1; x<=10; x++)\ncout << square (x) << endl;\nreturn 0;\n}\nint square (y);\n{\nreturn y*y;\n}","o":{"A":"разность","B":"сумму","C":"произведение","D":"возведение в куб","E":"возведение в квадрат"},"c":["E"]}
+  ]
+},
+{
+  "id": "alg5", "lang": "ru", "subject": "Алгоритмы и структуры данных", "variant": 5,
+  "questions": [
+    {"n":1,"q":"Функция, преобразующая ключ поиска в адрес в таблице","o":{"A":"хеш-функция","B":"адресная функция","C":"функция преобразования","D":"функция индекса","E":"функция-указатель"},"c":["A"]},
+    {"n":2,"q":"Структуры данных: связные списки, стеки и очереди","o":{"A":"сбалансированные","B":"нелинейные","C":"наивные","D":"экспоненциальные","E":"линейные"},"c":["E"]},
+    {"n":3,"q":"Свойство применимости алгоритма для некоторого класса задач, различающихся лишь значениями входных данных","o":{"A":"результативность","B":"массовость","C":"дискретность","D":"конечность","E":"детерминированность"},"c":["B"]},
+    {"n":4,"q":"Масштабирование ключей, являющихся числами больше 0 и меньше 1, в диапазон [0, M-1]","o":{"A":"умножить на M и округлить до ближайшего целого числа снизу","B":"умножить на M-1 и округлить до целого числа из диапазона [0, M-1]","C":"умножить на M и округлить до целого числа из диапазона [0, M-1]","D":"умножить на M и округлить до целого числа сверху из диапазона [1, M-1]","E":"умножить на M-1 и округлить до наибольшего целого числа"},"c":["C"]},
+    {"n":5,"q":"Метод разрешения коллизий хеширования, при котором ключи, хешированные в одну ячейку, объединяются в связный список","o":{"A":"«при помощи столкновений»","B":"«при помощи зондирования»","C":"«при помощи кубов»","D":"«при помощи цепочек»","E":"«при помощи диаграмм»"},"c":["D"]},
+    {"n":6,"q":"Топологическая абстракция, предназначенная для описания некоторых топологических свойств самых разных объектов и отношений между ними","o":{"A":"граф","B":"куст","C":"массив","D":"область","E":"вектор"},"c":["A"]},
+    {"n":7,"q":"В «О-синтаксисе» вставка в неупорядоченном массиве выполняется за время","o":{"A":"O(N)","B":"O(N²)","C":"O(logN)","D":"O(N/2)","E":"O(1)"},"c":["E"]},
+    {"n":8,"q":"Линейный набор элементов, называемых узлами (node), соединённых указателями (link) на следующий узел","o":{"A":"динамический массив","B":"несвязный список","C":"наивный список","D":"ассоциативный массив","E":"связный список"},"c":["E"]},
+    {"n":9,"q":"Тип возвращаемого значения в С, в случае, когда функция не возвращает никакого значения","o":{"A":"void","B":"double","C":"boolean","D":"char","E":"float"},"c":["A"]},
+    {"n":10,"q":"Каждый оператор в языке С++ заканчивается","o":{"A":".","B":"/","C":"\\","D":";","E":","},"c":["D"]},
+    {"n":11,"q":"Время выполнения программ, которые каждый элемент ввода подвергают небольшой обработке","o":{"A":"2N","B":"N⁵","C":"const","D":"параболический","E":"линейный"},"c":["E"]},
+    {"n":12,"q":"Класс сложности алгоритма поиска минимального элемента в неупорядоченном массиве, предполагающего просмотр всего набора входных данных","o":{"A":"гиперболический","B":"квадратичный","C":"нелинейный","D":"десятичный","E":"линейный"},"c":["E"]},
+    {"n":13,"q":"Базовый алгоритм быстрой сортировки был открыт Хоаром (C.A.R. Hoare) в","o":{"A":"1905 году","B":"1870 году","C":"1917 году","D":"1960 году","E":"2000 году"},"c":["D"]},
+    {"n":14,"q":"Методы разрешения коллизий","o":{"A":"открытой адресации, цепочки, линейного исследования","B":"закрытой адресации, ветвления, линейного исследования","C":"кубического исследования, двоичного хеширования","D":"закрытой адресации, цепочки, линейного исследования","E":"адресации, удаления, линейноого возрастания"},"c":["A"]},
+    {"n":15,"q":"Фрагмент программы моделирует бросание игральной кости (20 раз).\n# include <iostream.h>\n# include <stdlib.h>\nmain()\n{\nfor (int i=1; i<=20; i++)\n{cout << 1 + rand() % 6;\n}\nreturn;\n}\nИнтервал результатов программы...","o":{"A":"от 1 до 20","B":"от 0 до 6","C":"от 1 до 5","D":"от 1 до 6","E":"от 0 до 5"},"c":["D"]},
+    {"n":16,"q":"Основные операции в бинарном дереве поиска выполняются за время, пропорциональное его","o":{"A":"количеству родительских узлов","B":"количеству дочерних узлов","C":"количеству ветвей","D":"ширине","E":"высоте"},"c":["E"]},
+    {"n":17,"q":"Базовая структура данных, в которой каждый элемент содержит информацию, необходимую для получения следующего элемента","o":{"A":"связный список","B":"цепочный список","C":"множество","D":"массив","E":"наивный список"},"c":["A"]},
+    {"n":18,"q":"Функция в класс string С++ для выделения подстроки","o":{"A":"minstr","B":"supremum","C":"outstr","D":"swap","E":"substr"},"c":["E"]},
+    {"n":19,"q":"Процесс упорядоченного размещения элементов в массиве","o":{"A":"сравнение","B":"поиск","C":"фильтр","D":"перебор","E":"сортировка"},"c":["E"]},
+    {"n":20,"q":"Алгоритм поиска вершин в графе по их ключам, использующий стек в качестве дополнительной структуры данных","o":{"A":"поиск по уровням","B":"поиск в глубину","C":"поиск по диагонали","D":"поиск в длину","E":"поиск по широте"},"c":["B"]},
+    {"n":21,"q":"Служебное слово для обозначения строковых типов данных","o":{"A":"string","B":"float","C":"const","D":"set","E":"integer"},"c":["A"]},
+    {"n":22,"q":"Элементы массива последовательно проверяются на равенство с заданным значением. Работа алгоритма прерывается при обнаружении первого совпадения – это алгоритм","o":{"A":"сортировки хешем","B":"линейного поиска","C":"индуктивного анализа","D":"быстрой рекурсии","E":"двоичного поиска"},"c":["B"]},
+    {"n":23,"q":"Фрагмент кода на языке С++ определяет сумму\n{\ntotal = 0\nfor (row = 0; row < 10; row++)\n{for (col = 0; col < 10; col++)\n{total += a[row][col];\n…}}\n}","o":{"A":"всех элементов массива","B":"первой строки массива","C":"первого столбца массива","D":"последней строки массива","E":"последнего столбца массива"},"c":["A"]},
+    {"n":24,"q":"Изображение иллюстрирует (граф с вершинами 1,2,3,4 и направленными рёбрами по кругу)","o":{"A":"направленный циклический граф как связный вектор","B":"направленный ациклический граф как связную структуру","C":"направленный циклический граф как связную структуру","D":"направленный циклический граф как связный стек","E":"двунаправленный циклический граф как связную структуру"},"c":["C"]},
+    {"n":25,"q":"Один или более символов, определяющих действие над операндами","o":{"A":"знак разделителя","B":"знак функционала","C":"знак литерала","D":"знак операции","E":"ключевой знак"},"c":["D"]},
+    {"n":26,"q":"Корректность данных","o":{"A":"соответствие среде разработки","B":"интерпретируемость бизнес-аналитиком","C":"соответствие условиям решаемой задачи","D":"непротиворечивость входных и выходных данных","E":"соответствие решениям аналогичных задач"},"c":["C"]},
+    {"n":27,"q":"Задают действия над данными","o":{"A":"ключевые операнды","B":"зависимые переменные","C":"исполняемые операторы","D":"неисполняемые операторы","E":"независимые переменные"},"c":["C"]},
+    {"n":28,"q":"Оператор, меняющий поток выполнения программы: управление передаётся первому оператору после метки, указанной в данном операторе","o":{"A":"metc","B":"raise","C":"exit","D":"goto","E":"call"},"c":["D"]},
+    {"n":29,"q":"Перегрузка операции << в С++ позволяет использовать её, в зависимости от контекста, как","o":{"A":"«вывести из потока» или «сдвиг влево»","B":"нельзя перегружать эту операцию","C":"«вывести из потока» или «сдвиг вправо»","D":"«поместить в поток» или «сдвиг вправо»","E":"«поместить в поток» или «сдвиг влево»"},"c":["E"]},
+    {"n":30,"q":"Структура функции языке С++","o":{"A":"[тип локальных переменных] [параметры (список аргументов)] {тело функции}","B":"[тип глобальных переменных] [имя функции (список параметров)] {тело функции}","C":"[тип значения константы] [имя функции (список параметров)] {тело функции}","D":"[тип возвращаемого значения] [аргументы (список параметров)] {тело функции}","E":"[тип возвращаемого значения] [имя функции (список параметров)] {тело функции}"},"c":["E"]}
+  ]
+},
+{
+  "id": "alg6", "lang": "ru", "subject": "Алгоритмы и структуры данных", "variant": 6,
+  "questions": [
+    {"n":1,"q":"Топологическая абстракция, предназначенная для описания некоторых топологических свойств самых разных объектов и отношений между ними","o":{"A":"куст","B":"область","C":"граф","D":"вектор","E":"массив"},"c":["C"]},
+    {"n":2,"q":"Операторы тела функции заключаются в операторные скобки (C++)","o":{"A":"{…}","B":"{…)","C":"(…)","D":"< …>","E":"[…]"},"c":["A"]},
+    {"n":3,"q":"Элементы массива переупорядочиваются относительно выбранного опорного значения ключа. Рекомендуется выбирать опорный элемент близким к значению медианы – это","o":{"A":"сортировка узла","B":"поразрядная сортировка","C":"быстрая сортировка","D":"сортировка слиянием","E":"медленная сортировка"},"c":["C"]},
+    {"n":4,"q":"Зарезервированные обозначения, имеющие специальное значение для компилятора и используемые только в одном определенном смысле","o":{"A":"неисполняемые операторы","B":"исполняемые операторы","C":"ключевые слова","D":"строковые литералы","E":"неисполняемые операнды"},"c":["C"]},
+    {"n":5,"q":"Узел может быть вставлен в двоичное дерево только в качестве","o":{"A":"корня","B":"ветки","C":"листа","D":"вершины","E":"саженца"},"c":["C"]},
+    {"n":6,"q":"Унарная операция, позволяющая получить адрес программного объекта (C++)","o":{"A":"!","B":"&","C":"?","D":"%","E":"*"},"c":["B"]},
+    {"n":7,"q":"Группа операторов, которая выполняется повторно до тех пор, пока удовлетворяется некоторое условие","o":{"A":"индукция","B":"рефлексия","C":"цикл","D":"метка","E":"рекурсия"},"c":["C"]},
+    {"n":8,"q":"Линейный список, доступ к элементам которого происходит по принципу «Первым пришёл и первым ушёл» (First In and First Out)","o":{"A":"таблица (table)","B":"порядок (ordnung)","C":"куча (coatch)","D":"стек (stuck)","E":"очередь (queue)"},"c":["E"]},
+    {"n":9,"q":"Задают действия над данными","o":{"A":"исполняемые операторы","B":"зависимые переменные","C":"ключевые операнды","D":"независимые переменные","E":"неисполняемые операторы"},"c":["A"]},
+    {"n":10,"q":"Деревья, узлы которых содержат две связки (одна из которых или обе могут быть нулевыми)","o":{"A":"ветвящиеся","B":"корневые","C":"листовые","D":"двоичные","E":"кустистые"},"c":["D"]},
+    {"n":11,"q":"Характеристика качества алгоритма, показывающая насколько быстро работает алгоритм","o":{"A":"линейная эффективность (linear efficiency)","B":"минимальная эффективность (min efficiency)","C":"максимальная эффективность (max efficiency)","D":"временная эффективность (time efficiency)","E":"пространственная эффективность (space efficiency)"},"c":["D"]},
+    {"n":12,"q":"Фрагмент программы моделирует бросание игральной кости (20 раз).\n# include <iostream.h>\n# include <stdlib.h>\nmain()\n{\nfor (int i=1; i<=20; i++)\n{cout << 1 + rand() % 6;\n}\nreturn;\n}\nИнтервал результатов программы…","o":{"A":"от 1 до 6","B":"от 0 до 6","C":"от 0 до 5","D":"от 1 до 5","E":"от 1 до 20"},"c":["A"]},
+    {"n":13,"q":"Если второй элемент массива меньше первого, эти элементы меняются местами. На втором шаге третий элемент размещается в правильном порядке по отношению к двум первым, и т.д.","o":{"A":"сортировка вставкой","B":"распределяющая сортировка","C":"сортировка индексацией","D":"сортировка пузырьками","E":"выборочная сортировка"},"c":["A"]},
+    {"n":14,"q":"Класс сложности оптимизационных алгоритмов, реализующих полный перебор множества допустимых решений задачи","o":{"A":"кубическая","B":"факториальная","C":"параболическая","D":"бинарная","E":"многомерная"},"c":["B"]},
+    {"n":15,"q":"Список, допускающий прохождение как в прямом, так и обратном направлении","o":{"A":"двусвязный","B":"динамический","C":"односвязный","D":"циклический","E":"референтный"},"c":["A"]},
+    {"n":16,"q":"Упорядоченное дерево, состоящее из узлов двух типов: внешних узлов, не имеющих дочерних узлов, и внутренних узлов, каждый из которых имеет ровно два дочерних узла","o":{"A":"бинарный куст","B":"двоичная куча","C":"тернарное дерево","D":"красное дерево","E":"бинарное дерево"},"c":["E"]},
+    {"n":17,"q":"Оператор возврата значений из функции","o":{"A":"if","B":"for","C":"while","D":"else","E":"return"},"c":["E"]},
+    {"n":18,"q":"Хеш-функция, используемая при двойном хешировании","o":{"A":"h(k,i) = (h₁(k)+ih₂(k)) mod h₁","B":"h(k,i) = (h₁(k)+ih₂(h₂)) mod m","C":"h(k,i) = (h₁(k)+ih₂(k)) mod m","D":"h(k,i) = (h₁(h₁)+ih₂(k)) mod m","E":"h(k,i) = (h₁(k)+ih₂(h₁)) mod m"},"c":["C"]},
+    {"n":19,"q":"Ключевое слово, указывающее, что объект не является модифицируемым и что любая попытка изменения этого объекта является ошибкой","o":{"A":"const","B":"unit","C":"base","D":"long","E":"indef"},"c":["A"]},
+    {"n":20,"q":"Двоичный поиск исключает после каждого просмотра следующую часть элементов массива","o":{"A":"треть","B":"четверть","C":"десятую","D":"пятую","E":"половину"},"c":["E"]},
+    {"n":21,"q":"Имя массива есть адрес его начального элемента (и указатель на этот элемент). Поэтому инструкцию y = &a[0] можно записать в виде","o":{"A":"y = a(0);","B":"y = 1;","C":"y = a(1);","D":"y = a;","E":"y = 0;"},"c":["D"]},
+    {"n":22,"q":"Оператор C, который означает «увеличить на единицу»","o":{"A":"+/","B":"-+","C":"++","D":"+-","E":"/+"},"c":["C"]},
+    {"n":23,"q":"Изображение иллюстрирует [граф из 4 вершин со стрелками: 1→2, 1→3, 1→4, 2→4, 3→4]","o":{"A":"простой двунаправленный циклический граф","B":"сложный направленный циклический граф","C":"простой направленный граф","D":"простой ненаправленный циклический граф","E":"простой направленный нециклический граф"},"c":["E"],"note":"Спорный: изображён направленный ациклический граф, поэтому подходит и «простой направленный граф» (C). Выбран более точный вариант."},
+    {"n":24,"q":"Выбор хеш-функции зависит от","o":{"A":"типа ключа","B":"вида данных","C":"индекса ключа","D":"размера массива","E":"типа переменной"},"c":["A"]},
+    {"n":25,"q":"Функция C динамического выделения памяти","o":{"A":"molloc","B":"sizeof","C":"fullog","D":"calloc","E":"realoc"},"c":["D"]},
+    {"n":26,"q":"Алгоритм поиска вершин в графе по их ключам, использующий очередь как дополнительную структуру данных","o":{"A":"поиск по диагонали","B":"поиск в ширину","C":"поиск в глубину","D":"поиск по слоям","E":"поиск по высоте"},"c":["B"]},
+    {"n":27,"q":"Графическое представление алгоритма или фрагмента алгоритма","o":{"A":"математическая структура","B":"технологическая схема","C":"физическая схема","D":"карта компонентов","E":"блок схема"},"c":["E"]},
+    {"n":28,"q":"Время выполнения алгоритмов, которые обрабатывают все элементы данных тройками","o":{"A":"linea","B":"N³","C":"N-3","D":"3^N","E":"tetr"},"c":["B"]},
+    {"n":29,"q":"Функция в классе string C++ для обмена содержимого строк","o":{"A":"chanstr","B":"swap","C":"maxrstr","D":"instr","E":"supstr"},"c":["B"]},
+    {"n":30,"q":"Идеальную хеш-функцию легко вычислить и аппроксимировать","o":{"A":"дельта-функцией","B":"случайной функцией","C":"тригонометрической функцией","D":"логарифмической функцией","E":"функцией гамма"},"c":["B"]}
+  ]
+},
+{
+  "id": "kzdb1", "lang": "kz", "subject": "Деректер базасы", "variant": 1,
+  "questions": [
+    {"n":1,"q":"2021 жылғы оқылатын сабақтардың секцияларының орташа жалпы кредиттер санын табу. Бірақ әр секцияда кемінде 3 студент болу керек","o":{"A":"SELECT CourseId, Semester, Year, SecId, AVG(TotCred)\nFROM TAKES NATURAL JOIN STUDENT\nWHERE Year = 2021\nHAVING COUNT(Sid) >= 3;","B":"SELECT CourseId, Semester, Year, SecId, MAX(TotCred)\nFROM TAKES NATURAL JOIN STUDENT\nWHERE Year = 2021\nHAVING COUNT(Sid) >= 3;","C":"SELECT CourseId, Semester, Year, SecId, MAX(TotCred)\nFROM TAKES NATURAL JOIN STUDENT\nWHERE Year = 2021\nHAVING AVG(Sid) > 3;","D":"SELECT CourseId, Semester, Year, SecId, MAX(TotCred)\nFROM TAKES NATURAL JOIN STUDENT\nHAVING COUNT(Sid) >= 3;","E":"SELECT CourseId, Semester, Year, SecId, TOTAL(TotCred)\nFROM TAKES NATURAL JOIN STUDENT\nWHERE Year = 2021","F":"SELECT CourseId, Semester, Year, SecId, MIN(TotCred)\nFROM TAKES, STUDENT\nWHERE Year = 2021\nHAVING COUNT(Sid) >= 3;"},"c":["A"]},
+    {"n":2,"q":"Қала атына кері сұрыптауды қолданып, Париждан басқа және өлшемі 10 кг-нан көп болатын бөлшектердің түсі мен қай қалада шығарылатынын көрсету","o":{"A":"SELECT P.Color, P.City\nFROM P\nWHERE P.City <> 'Paris' OR P.Weight > 10\nGROUP BY City DESC;","B":"SELECT P.Color, P.City\nFROM P\nWHERE P.City <> 'Paris' OR P.Weight > 10\nORDER BY City DESC;","C":"SELECT P.Color, P.City\nFROM P\nWHERE P.City <> 'Paris' AND P.Weight > 10\nORDER BY City;","D":"SELECT P.Color, P.City\nFROM P\nWHERE P.City <> 'Paris' AND P.Weight > 10","E":"SELECT P.Color, P.City\nFROM P;","F":"SELECT P.Color, P.City\nFROM P\nWHERE P.City <> 'Paris' AND P.Weight > 10\nORDER BY City DESC;"},"c":["F"]},
+    {"n":3,"q":"Қиылысу операциясы үшін қолданылатын команда","o":{"A":"divide by","B":"project","C":"intersect","D":"union","E":"minus","F":"join","G":"times","H":"select"},"c":["C"]},
+    {"n":4,"q":"ER-моделіндегі байланыс түрі","o":{"A":"өзіне сілтеме жасайтын","B":"паралельді","C":"композиция","D":"тізбектелген","E":"рекурсивті","F":"шартты"},"c":["A","E"]},
+    {"n":5,"q":"2005 коды пән бойынша студент бағасын 5-ке ауыстыру","o":{"A":"APPEND USP\nSET Ocenka = 5\nWHERE Pnum = 2005;","B":"DELETE USP\nSET Ocenka = 5\nWHERE Pnum = 2005;","C":"UPDATE USP\nSET Ocenka = 5\nWHERE Pnum > 2005;","D":"INSERT INTO USP Ocenka = 5\nWHERE Pnum = 2005;","E":"INSERT INTO USP\nSET Ocenka = 5\nWHERE Pnum = 2005;","F":"UPDATE USP\nSET Ocenka = 5\nWHERE Pnum = 2005;"},"c":["F"]},
+    {"n":6,"q":"Иерархиялық деректер қорында ағашты толық қарап өту реті","o":{"A":"жоғарыдан төмен, оннан солға қарай","B":"төменнен жоғары, солдан оңға қарай","C":"тек солдан оңға қарай","D":"төменнен жоғары, оңнан солға қарай","E":"жоғарыдан төмен, солдан оңға қарай","F":"тек оңнан солға қарай"},"c":["E"]},
+    {"n":7,"q":"Реляционды деректер моделінде «Көп қабатты үй - тұрғын» байланысының түрі","o":{"A":"∞:1","B":"1:2","C":"2:1","D":"1:∞","E":"∞:∞","F":"1:1"},"c":["D"]},
+    {"n":8,"q":"Фамилиясы И-мен С әріптерінің арасында болатын оқытушылардың сабақ беретін пәндері","o":{"A":"SELECT * FROM PREDMET\nWHERE PREDMET.Tnum IN\n(SELECT TEACHERS.Tnum FROM TEACHERS\nWHERE TEACHERS.Tfam) ;","B":"SELECT * FROM PREDMET\nWHERE PREDMET.Tnum IN\n(SELECT TEACHERS.Tnum FROM TEACHERS\nWHERE TEACHERS.Tfam LIKE 'И' AND 'С') ;","C":"SELECT * FROM PREDMET\nWHERE PREDMET.Tnum NOT IN\n(SELECT TEACHERS.Tnum FROM TEACHERS\nWHERE TEACHERS.Tfam BETWEEN 'И' AND 'С') ;","D":"SELECT * FROM PREDMET\nWHERE PREDMET.Tnum IN\n(SELECT TEACHERS.Tnum FROM TEACHERS\nWHERE TEACHERS.Tfam BETWEEN 'И' AND 'С') ;","E":"SELECT * FROM PREDMET\nWHERE PREDMET.Tnum\n(SELECT TEACHERS.Tnum FROM TEACHERS\nWHERE TEACHERS.Tfam BETWEEN 'И' AND 'С') ;","F":"SELECT * FROM PREDMET\nWHERE PREDMET.Tnum IN\n(SELECT TEACHERS.Tnum FROM TEACHERS BETWEEN 'И' OR 'С' );"},"c":["D"],"note":"Спорный: на исходном скриншоте отмечен вариант B (LIKE), но синтаксически верен BETWEEN. Отметка в скриншоте не является эталоном."},
+    {"n":9,"q":"Реляциондық базада атрибуттың әлеуетті кілт болу қасиеті","o":{"A":"агрегаттылық","B":"уникалдылық","C":"минималдылық","D":"ассоциативтік","E":"біркелкілік","F":"ақпараттық"},"c":["B","C"]},
+    {"n":10,"q":"Жалақысы 250000 мен 300000 арасындағы оқытушылардың аты-жөні","o":{"A":"SELECT Name\nFROM INSTRUCTOR\nWHERE Salaray <300000;","B":"SELECT Name\nFROM INSTRUCTOR\nWHERE Salaray = 250000;","C":"SELECT Name\nFROM INSTRUCTOR\nWHERE Salary LIKE 250000 AND 300000;","D":"SELECT Name\nFROM INSTRUCTOR\nWHERE Salaray > 250000;","E":"SELECT Name\nFROM INSTRUCTOR\nWHERE Salary 250000 AND 300000;","F":"SELECT Name\nFROM INSTRUCTOR\nWHERE Salary BETWEEN 250000 AND 300000;"},"c":["F"]},
+    {"n":11,"q":"Нормалды формалар","o":{"A":"6НФ","B":"4НФ","C":"3НФ","D":"Бойс-Коддтың НФ","E":"0НФ","F":"Ажырату НФ","G":"Кодд НФ","H":"Біріктіру НФ"},"c":["B","C","D"],"note":"Спорный: реально существуют также 6НФ (A), то есть верных четыре — но тест допускает не более трёх ответов. Уточнить у преподавателя."},
+    {"n":12,"q":"Пән номері мен сол пәннен сабақ беретін оқытушылардың тізімі","o":{"A":"SELECT Name, CourseId\nFROM INSTRUCTOR, TEACHES\nWHERE INSTRUCTOR.Id = TEACHES. Id;","B":"SELECT Name, CourseId\nFROM INSTRUCTOR\nWHERE INSTRUCTOR.Id = Id;","C":"SELECT Name, CourseId\nFROM INSTRUCTOR, TEACHES\nWHERE INSTRUCTOR.Id == TEACHES;","D":"SELECT Name, CourseId\nFROM INSTRUCTOR, TEACHES;","E":"SELECT Name, CourseId\nFROM INSTRUCTOR NATURAL JOIN TEACHES","F":"SELECT Name, CourseId\nFROM INSTRUCTOR\nWHERE INSTRUCTOR.Id == Id;"},"c":["A","E"]},
+    {"n":13,"q":"Орташа жалақысы ең үлкен болатын бөлімдерді табу","o":{"A":"SELECT DeptName\nFROM INSTRUCTOR\nHAVING AVG(Salary) >= ALL ( SELECT AVG(Salary)\nFROM INSTRUCTOR);","B":"SELECT DeptName\nFROM INSTRUCTOR\nHAVING AVG(Salary) >= ALL ( SELECT (Salary)\nFROM INSTRUCTOR);","C":"SELECT DeptName\nFROM INSTRUCTOR\nHAVING AVG(Salary) >= ( SELECT MIN(Salary)\nFROM INSTRUCTOR);","D":"SELECT DeptName\nFROM INSTRUCTOR\nHAVING AVG(Salary) >= ANY ( SELECT AVG(Salary)\nFROM INSTRUCTOR);","E":"SELECT DeptName\nFROM INSTRUCTOR\nHAVING (Salary) >= ALL ( SELECT AVG(Salary)\nFROM INSTRUCTOR);","F":"SELECT DeptName\nFROM INSTRUCTOR\nHAVING AVG(Salary) >= ( SELECT AVG(Salary)\nFROM INSTRUCTOR);"},"c":["A"]},
+    {"n":14,"q":"DELETE операторы","o":{"A":"кестені құру","B":"кестедегі жолдарды жаңарту","C":"кестені жою","D":"кестеден жолдарды жою","E":"мәліметтерді таңдау","F":"жолдар енгізу"},"c":["D"]},
+    {"n":15,"q":"Студенттердің 10/09/2021 күні алынған балынан жоғары балдар","o":{"A":"SELECT * FROM USP\nWHERE Ocenka >= ALL (SELECT Ocenka FROM USP","B":"SELECT * FROM USP\nWHERE Ocenka >= SOME (SELECT Ocenka FROM USP\nWHERE Udate = 10/09/2021);","C":"SELECT * FROM USP\nWHERE Ocenka >= ALL (SELECT Ocenka FROM USP\nWHERE Udate = 10/09/2021);","D":"SELECT * FROM USP\nWHERE Ocenka >= NOT ALL (SELECT Ocenka FROM USP\nWHERE Udate = 10/09/2021);","E":"SELECT * FROM USP\nWHERE Ocenka <= (SELECT Ocenka FROM USP\nWHERE Udate = 10/09/2021);","F":"SELECT * FROM USP\nWHERE Ocenka >= ANY (SELECT Ocenka FROM USP\nWHERE Udate = 10/09/2021);"},"c":["C"]},
+    {"n":16,"q":"Деректер қорының бүтіндігі түсінігі","o":{"A":"ақпараттық қорғалғандығы","B":"ақпараттың қарама-қайшылығы","C":"ақпараттың қарама-қайшы еместігі","D":"атрибуттарды жіктеу мүмкіндігі","E":"ақпараттың топталғандығы","F":"ақпараттың тәуелділігі","G":"ақпараттық өзектілігі","H":"атрибуттарды топтау мүмкіндігі"},"c":["C","G"]},
+    {"n":17,"q":"Қатынас 5НФ да болады, егер","o":{"A":"3НФ-те болатын және кілттік емес атрибуттар өзара тәуелді","B":"қатынастағы кез-келген байланысу тәуелділігі осы қатынаста мүмкін болатын кілттің бар болуынан шығады","C":"көп мәнді қатынас болса және қатынастағы қалған атрибуттар А-ға функционалды тәуелді болса","D":"3НФ-те болса және кілттік емес атрибуттары бастапқы кілтке тәуелді болса","E":"3НФ-те болатын және логикалық бөлінбейтін мәндерге ие қатынас","F":"2НФ да болса және функционалдық тәуелділіктер болмаса"},"c":["B"]},
+    {"n":18,"q":"Адресері Алматыдан болатын жұмысшылардың аты-жөні","o":{"A":"SELECT Fname, Lname\nFROM EMPLOYEE\nWHERE Address LIKE 'Алматы';","B":"SELECT Fname, Lname\nFROM EMPLOYEE\nWHERE Address NOT LIKE 'Алматы%';","C":"SELECT Fname, Lname\nFROM EMPLOYEE","D":"SELECT Fname, Lname\nFROM EMPLOYEE\nWHERE Address NOT IN '%Алматы%';","E":"SELECT Fname, Lname\nFROM EMPLOYEE\nWHERE Address = = Алматы","F":"SELECT Fname, Lname\nFROM EMPLOYEE\nWHERE Address LIKE '%Алматы%';"},"c":["F"]},
+    {"n":19,"q":"Индексте мәліметтерді реттеу әдісі","o":{"A":"SORT","B":"ASC|DESC","C":"CASCADE","D":"ON UPDATE CASCADE","E":"REFERENCES","F":"ORDER BY","G":"ON UPDATE NO ACTION","H":"CHECK"},"c":["B"],"note":"Спорный: ORDER BY (F) относится к запросу, а не к индексу; при создании индекса указывается ASC|DESC."},
+    {"n":20,"q":"Әр Должность бағанында жұмысшы санын анықтайтын сұраныс","o":{"A":"SELECT COUNT(*)\nFROM Кадровый_состав","B":"SELECT Должность, COUNT(*)\nFROM Кадровый_состав","C":"SELECT COUNT(*)\nFROM Должность","D":"SELECT COUNT(*)\nFROM Кадровый_состав\nGROUP BY Должность\nWHERE Должность NOT NULL","E":"SELECT Должность, SUM(*)\nFROM Кадровый_состав","F":"SELECT Должность, MAX(*)\nFROM Кадровый_состав"},"c":["D"],"note":"Спорный: ни один вариант не корректен полностью — B без GROUP BY, D с неверным порядком WHERE/GROUP BY. Выбран D как единственный с группировкой."}
+  ]
+},
+{
+  "id": "kzdb2", "lang": "kz", "subject": "Деректер базасы", "variant": 2,
+  "questions": [
+    {"n":1,"q":"Файл-сервер архитектурасының кемшіліктері","o":{"A":"клиенттік қосымшалардың жеңілдеуі","B":"желінің жоғары жүктемесіне байланысты өнімділіктің төмендеуі","C":"клиент пен сервер арасындағы артық деректерді беру","D":"бір мезгілде сұраныстарды өңдеудегі шектеулер","E":"бірнеше жазбалар сұралған кезде барлық кестенің берілуіне байланысты артық трафик","F":"клиенттер мен операциялардың көбеюімен сервер масштабтау мәселелеріне тап болуы мүмкін"},"c":["B","C","E"],"note":"Спорный: недостатком файл-серверной архитектуры можно считать и D — но тест допускает не более трёх ответов."},
+    {"n":2,"q":"Тұтастық шектеулерін орнату үшін маңызды","o":{"A":"UNIQUE","B":"FOREIGN KEY","C":"NO ACTION","D":"PRIMARY KEY","E":"CHECK","F":"NULL","G":"CLUSTERED"},"c":["B","D"]},
+    {"n":3,"q":"Мәндік тұтастықты қамтамасыз ететін шектеу","o":{"A":"PRIMARY KEY","B":"CHECK","C":"FOREIGN KEY","D":"IDENTITY","E":"UNIQUE","F":"NULL"},"c":["B"],"note":"Спорный: «мәндік тұтастық» (доменная целостность) — это CHECK; UNIQUE (E) относится к целостности сущностей. Уточнить у преподавателя."},
+    {"n":4,"q":"1:1 байланыс үшін қатынас қалыптастыру ережелері","o":{"A":"егер байланыс дәрежесі 1:2 және тиістілік класы бір мағына үшін міндетті және екінші мағына үшін міндетті емес болса","B":"егер бинарлы байланыстың дәрежесі 1:1 және тиістілік класы екі мағына үшін міндетті болса","C":"егер бинарлы байланыстың дәрежесі N:1 және тиістілік класы екі мағына үшін міндетті болса","D":"егер байланыс дәрежесі 2:1 және тиістілік класы бір мағына үшін міндетті және екінші мағына үшін міндетті емес болса","E":"егер байланыс дәрежесі 1:1 және тиістілік класы бір мағына үшін міндетті және екінші мағына үшін міндетті емес болса","F":"егер бинарлы байланыстың дәрежесі 1:N және тиістілік класы екі мағына үшін міндетті болса"},"c":["B"]},
+    {"n":5,"q":"Әр семестрдегі емтихан саны","o":{"A":"SELECT Semester, COUNT(*) AS 'ExamCOUNT'\nFROM UCHPLAN\nWHERE Report = 'емтихан'\nORDER BY Semester DESC;","B":"SELECT Semester, COUNT(EXAM) AS 'ExamCOUNT'\nFROM UCHPLAN\nWHERE Report = 'емтихан'\nORDER BY Semester;","C":"SELECT Semester, COUNT(*) AS 'ExamCOUNT'\nFROM UCHPLAN\nWHERE Report = 'емтихан';","D":"SELECT Semester, COUNT(*) AS 'ExamCOUNT'\nFROM UCHPLAN\nWHERE Report = 'емтихан'\nGROUP BY Semester;","E":"SELECT Semester, COUNT(*) AS 'ExamCOUNT'\nFROM UCHPLAN\nGROUP BY Semester;","F":"SELECT Semester, COUNT(*) AS 'ExamCOUNT'\nFROM UCHPLAN\nWHERE Report == 'емтихан';"},"c":["D"]},
+    {"n":6,"q":"F жиынынан F* жиынын құрудағы аксиомалар","o":{"A":"біріктіру","B":"бөліп алу","C":"кеңейту","D":"байланыстыру","E":"декомпозиция","F":"қосу"},"c":["A","B"],"note":"Спорный: «бөліп алу» (B) и «декомпозиция» (E) — синонимы, а «кеңейту» (C) — аксиома Армстронга. Уточнить у преподавателя."},
+    {"n":7,"q":"Microsoft SQL Server-де кестелерді жасау тәсілдері","o":{"A":"OLE DB","B":"DESKTOP","C":"DB-LIB","D":"ALTER TABLE","E":"SQL Server Enterprise Manager","F":"STANDARD","G":"CREATE TABLE"},"c":["E","G"]},
+    {"n":8,"q":"Мән-байланыс моделінің диаграммасындағы әлсіз мән [ER-диаграмма: DEPARTMENT, EMPLOYEE, DEPENDENT, PROJECT, SUPPLIER, PART]","o":{"A":"DEPENDENT (Қараудағы адам)","B":"PART (Бөлшек)","C":"ENAME (Толық аты)","D":"SUPPLIER (Жеткізуші)","E":"DEPARTMENT (Бөлім)","F":"PROJECT (Жоба)","G":"EMPLOYEE (Жұмыскер)"},"c":["A"]},
+    {"n":9,"q":"Реляциялық модельдегі кесте жолы","o":{"A":"кортеж","B":"primary key","C":"атрибут","D":"tuple","E":"домен","F":"бастапқы кілт"},"c":["A","D"]},
+    {"n":10,"q":"Реляциялық алгебраның алдыңғы амал нәтижесіне бір атау меншіктеу амалы","o":{"A":"көбейту","B":"меншіктеу","C":"проекцияны құру","D":"біріктіру","E":"қиылысу","F":"бөлу","G":"қосу","H":"айыру"},"c":["B"]},
+    {"n":11,"q":"Транзакцияның қасиеттері","o":{"A":"оптимизациялау","B":"келісілгендік","C":"бүтіндік","D":"атомарлылық","E":"компиляциялық","F":"ұзақтылық","G":"репликациялық"},"c":["B","D","F"]},
+    {"n":12,"q":"Фрагменттеуді жеңілдетудің негізгі әдістері","o":{"A":"логикалық фрагменттеу","B":"статикалық фрагменттеу","C":"динамикалық фрагменттеу","D":"вертикальді","E":"қарапайым горизонталды","F":"горизонталды туынды","G":"сұрыпталған","H":"диагональді"},"c":["D","E","F"]},
+    {"n":13,"q":"SQL Server агенті үшін тапсырмалар мен оқиғаларды жоспарлау туралы ақпаратты және операторлардың жұмысын ұйымдастыру туралы ақпаратты қамтитын жүйелік мәліметтер базасы","o":{"A":"master","B":"tempdb","C":"model","D":"odbc","E":"msdb","F":"resource","G":"bcp"},"c":["E"]},
+    {"n":14,"q":"Сырттай қосылу мен тета қосылу [белгілер қаріппен бұрмаланған]","o":{"A":"RÎÎS","B":"RÎÏ=S","C":"RÉIS; RÍ ÉS","D":"RÉS","E":"RÍFS","F":"RÎÎFS"},"c":["C"],"note":"Ненадёжный скан: символы обозначений в исходнике испорчены шрифтом и не читаются. Сверить с оригиналом."},
+    {"n":15,"q":"Бастапқы кілттің белгісі және кесте үшін сыртқы кілтті шектеу","o":{"A":"CHECK","B":"UNIQUE","C":"PRIMARY KEY","D":"REFERENCES","E":"NOT NULL","F":"NOT IN","G":"FOREIGN KEY"},"c":["C","D","G"]},
+    {"n":16,"q":"Екі кестенің декарттық көбейтуін шығаратын сұраныс","o":{"A":"select table2.column1 from table1,table2\nwhere table1.column1=table2.column1","B":"select table1.column1,table2.column1\nfrom table1,table2\nwhere table1.column1=table2.column1","C":"select table2.column1 from table2\nwhere table2.column1=table2.column1","D":"select table1.column1 from table1,table2","E":"select table1.column1 from table1,table2\nwhere table1.column1=table2.column1","F":"select table2.column1 from table1 cross join table2","G":"select table1.column1 from table2,table1\nwhere table2.column1=table1.column1"},"c":["D"]},
+    {"n":17,"q":"Егер сөйлемде DESC кілттік сөзі бар болса","o":{"A":"сұраныс жасалып отырған кесте жойылады","B":"сұраныс жасалып отырған кестенің бағандары жойылады","C":"сұраныс жасалып отырған кестенің бағандары ретке келтіріледі","D":"ретке келтіру әрекеті өсу реті бойынша жүреді","E":"сұраныс жасалып отырған кестенің құрылымы өзгереді","F":"сұраныс жасалып отырған кестенің жазбалары ретке келтіріледі","G":"ретке келтіру әрекеті кему реті бойынша жүреді"},"c":["F","G"]},
+    {"n":18,"q":"Байланыс 1:1","o":{"A":"мағынасыз байланыс","B":"бір класс түйінінің бір данасы басқа класс түйінінің көптеген данасымен байланысқан","C":"жұптық байланыс","D":"бір класс түйінінің бірнеше данасы басқа класс түйінінің бірнеше данасымен байланысқан","E":"бір класс түйінінің бір данасы басқа класс түйінінің бір данасымен байланысқан","F":"байланыстың әр жағындағы түйіндердің максималды санымен белгілейді"},"c":["E"]},
+    {"n":19,"q":"Бағасы, барлық тауарлардың орташа арифметикалық мәнінен кем тауарларды кестеден жоятын DML команда","o":{"A":"delete from products\nwhere price<(select sum(price)/count(*) from products);","B":"delete from products\nwhere price<=avg(price);","C":"delete from products\nwhere price<avg(price);","D":"truncate products\nwhere price<(select mean(price) from products);","E":"delete from products\nwhere price<(select avg(price) from products);","F":"remove from products\nwhere price<(select avg(price) from products);","G":"drop products products\nwhere price<(select avg(price) from products);"},"c":["A","E"]},
+    {"n":20,"q":"Шарттар спецификациясын құру әдістері","o":{"A":"Data Manipulation Language(DML)","B":"Hierarchy plus Input Processing-Output(HIPO)","C":"Structured Analysis and Design Techique(SADT)","D":"Interface Definition Languag","E":"Binary Large OBject (BLO)","F":"Data Definition Language (DDL)","G":"Data Flow Diagrams(DFD)","H":"Data Control Language(DCL)"},"c":["B","C","G"]}
+  ]
+},
+{
+  "id": "kzalg1", "lang": "kz", "subject": "Алгоритмдер және деректер құрылымы", "variant": 1,
+  "questions": [
+    {"n":1,"q":"Функциядағы қайтару операторы","o":{"A":"return","B":"if","C":"else","D":"while","E":"for"},"c":["A"]},
+    {"n":2,"q":"C++ тілінде функция белсенді болады егер оны","o":{"A":"жойса","B":"шығарса","C":"көшірсе","D":"енгізсе","E":"шақырса"},"c":["E"]},
+    {"n":3,"q":"Фибоначчи сандарын есептеу функциясында рекурсияның әр деңгейін шақыруды екі есе өсіреді, сондықтан Фибоначчидің n-санын есептеу 2ⁿ болады. Есептеу әдісінде бұл күрделілік аталады","o":{"A":"сызықтық-логарифмдық","B":"сызықтық","C":"логарифмдық","D":"квадраттық","E":"экспоненттік"},"c":["E"]},
+    {"n":4,"q":"Есептегі енгізу және шығару деректерін анықтау. Есеп: Шеңбердің ұзындығын екі тәсілмен табу керек, егер диаметрі d белгілі болса: L = π·d және радиусы R белгілі болса: L1 = 2·π·R. R радиусын қолданып, дөңгелектің ауданын табу керек: S = π·R²","o":{"A":"S, L, L1 және π, R, d;","B":"π, R, d және S, L, L1;","C":"R, L, L1 және π, S,d;","D":"π, S, R және d, L, L1;","E":"R, d, L1 және π, S, L;"},"c":["B"]},
+    {"n":5,"q":"Стек пен кезектердің қолданылатын саласы","o":{"A":"функцияны шақыру және оны орындау","B":"жергілікті және жаһанды айнымалыларға мән беру","C":"процедура мен функцияларға аргументтер мәнін жіберу","D":"процедурадағы жаһанды айнымалыны шақыру","E":"процедура мен функцияларға цикл қолдану"},"c":["A"]},
+    {"n":6,"q":"Алгоритмнің факториалдық күрделілігі","o":{"A":"O(n³)","B":"O (n log n)","C":"O (log n)","D":"O(n!)","E":"O(1)"},"c":["D"]},
+    {"n":7,"q":"Қойылған есептің күрделілігіне қарай алгоритмнің жұмысын анықтайтын функция анықталады","o":{"A":"кейздейсоқ сандармен","B":"сандық алгоритмдермен","C":"арифметикалық көбейтулермен","D":"шешімдердің қабылдауымен","E":"асимптотикалық күрделілігімен"},"c":["E"]},
+    {"n":8,"q":"Бағытталған графта кез келген төбелерден кезкелген төбелерге жолдары бар максималды төбелер жиынын құрайды","o":{"A":"байланыспаған қабырғалар жиыны","B":"байланыспаған жолдар жиыны","C":"байланыспаған төбелер жиыны","D":"жеңіл байланыстағы компонент","E":"мықты байланысты компонент"},"c":["E"]},
+    {"n":9,"q":"Қызыл-қара теңестірілген ағаштың түбірі әр уақытта","o":{"A":"көк","B":"қызыл","C":"ақ","D":"қара","E":"жасыл"},"c":["D"]},
+    {"n":10,"q":"C++ тіліндегі бағдарлама фрагменті орындалу нәтижесінде экранға шығады\n{\n….\nfor (int i=0; i < 15; i++)\nfor (int j=0; j < 14; j++)\na[i][j]= 1 + random (9);\n…\nprintf(\" %i\", a[i][j]);\ngetch();\n}","o":{"A":"9 - 15 диапазонындағы кездейсоқ сандармен толтырылған 15 жолдан және 14 бағаннан тұратын екі өшемді массив шығады","B":"1 - 14 диапазонындағы кездейсоқ сандармен толтырылған 9 жолдан және 15 бағаннан тұратын екі өшемді массив шығады","C":"9 - 14 диапазонындағы кездейсоқ сандармен толтырылған 15 жолдан және 9 бағаннан тұратын екі өшемді массив шығады","D":"1 - 15 диапазонындағы кездейсоқ сандармен толтырылған 9 жолдан және 9 бағаннан тұратын екі өшемді массив шығады","E":"1– 10 диапазонындағы кездейсоқ сандармен толтырылған 15 жолдан және 14 бағаннан тұратын екі өшемді массив шығады"},"c":["E"]},
+    {"n":11,"q":"C++ тіліндегі функцияның денесі тұрады","o":{"A":"жариялау мен операторлардан","B":"түсініктемелер мен модульдерден","C":"кітапханалар мен модульдерден","D":"жарияланған қарапайым типтерден","E":"түсініктемелер мен кітапханалардан"},"c":["A"]},
+    {"n":12,"q":"Берілген key кілті үшін хеш-функция әр уақытта бірғана хеш-код has(key) қайтаруы тиіс","o":{"A":"determinism","B":"multiplication method","C":"double hashing","D":"uniform hashing","E":"division method"},"c":["A"]},
+    {"n":13,"q":"Соқтығуды шешу барысында бір ұяшықта хештелген барлық элементтерді байланысқан тізімге біріктіреміз. Мұндағы j ұяшығында кілтінің хеш-мәні j-ға тең болатын тізімдегі барлық элементтерінің төбесіне көрсеткіші орналасады, егер элемент жоқ болса ұяшықта NIL мәні орналасады. Бұл әдіс аталады","o":{"A":"Ашық адрестеу","B":"Шаршылық зерттеу","C":"Бір тізбекті","D":"Сызықты зерттеу","E":"Қос хештау"},"c":["C"]},
+    {"n":14,"q":"Жолдар құрылымы ретінде ұйымдастырылатын тәсіл","o":{"A":"бірікпеген тізімдер","B":"графтар","C":"біріккен сызықты тізім","D":"бинарлық үйін","E":"бинарлық ағаш"},"c":["C"],"note":"Спорный: формулировка «Жолдар құрылымы» допускает и «графтар» (B). Уточнить у преподавателя."},
+    {"n":15,"q":"Бос орынмен бір бірінен бөлінген символдардың тізбегі","o":{"A":"атрибуттар","B":"тұрақты тіркестер","C":"лексема","D":"функция","E":"көрсеткіштер"},"c":["C"]},
+    {"n":16,"q":"Ұрпақтық түйіндердің саны көрсетеді","o":{"A":"түйіндердің тереңдігін","B":"түйіндердің биіктігін","C":"түйіндердің толықтығын","D":"түйіндердің енін","E":"түйіндердің дәрежесін"},"c":["E"]},
+    {"n":17,"q":"C++ тілінде оңға және солға жылжыту операциялары орындалғанда, оң жақтағы және сол жақтағы биттер босатылып, орнына жазылады","o":{"A":"теріс сандар","B":"сызықтар","C":"сұрақ белгілері","D":"нөлдер","E":"көбейту белгілері"},"c":["D"]},
+    {"n":18,"q":"Бағытталған циклы жоқ граф","o":{"A":"ациклді","B":"сыбайласқан","C":"циклді","D":"байланыспаған","E":"инциденті"},"c":["A"]},
+    {"n":19,"q":"А массивін сұрыптау барысында i-шы этапта A[i]- элементін алып алдындағы тәртіптелген элементтердің арасына A[1], A[2], …, A[i - 1] тиісті орынға орналастырамыз","o":{"A":"шелл сұрыптауы","B":"кірістіру арқылы сұрыптау","C":"разрядтты сұрыптау","D":"көпіршікті сұрыптау","E":"таңдау арқылы сұрыптау"},"c":["B"]},
+    {"n":20,"q":"C++ тіліндегі switch құрылымына енетін бірнеше белгі және міндетті емес белгілердің атауы","o":{"A":"if, else","B":"case, default","C":"else, case","D":"for, then","E":"continue, break"},"c":["B"]},
+    {"n":21,"q":"C++ тіліндегі бағдарлама фрагменттегі есептеулерді сипаттайды\nfactorial =1;\nfor (int counter = number; counter >=1; counter--)\nfactorial *=counter;","o":{"A":"бағдарламалық","B":"итеративті","C":"логикалық","D":"рекурсивті","E":"математикалық"},"c":["B"]},
+    {"n":22,"q":"Көпіршікті сұрыптау алгоритміне негізделген сұрыптау әдісі","o":{"A":"пирамидалық","B":"шелл","C":"шейкерлік","D":"таңдау арқылы","E":"шаршылық"},"c":["C"]},
+    {"n":23,"q":"C++ тіліндегі бағдарлама фрагментіндегі екі өлшемді массивтегі жол мен бағанның саны\n{\nstatic int a[?][?]={{5,3,4,2}, {3,3,4,5}, {2,3,3,4} {5,3,8,4}};\nint i, j, s = 0;\nfloat c = 0;\n…\n}","o":{"A":"6, 4","B":"3, 5","C":"2, 3","D":"4, 4","E":"5, 4"},"c":["D"]},
+    {"n":24,"q":"Бинарлық іздеу ағашының биіктігі бойынша теңестіру түрлері","o":{"A":"AVL, қызыл-қара","B":"ГМВ, Қара-қызыл","C":"тереңдік пен ені бойынша","D":"қызыл-көк, DFS","E":"BFS, DFS"},"c":["A"]},
+    {"n":25,"q":"C++ тіліндегі бағдарламаның нәтижесін анықтау\n#include<iostream.h>\n#include<string.h>\nmain()\n{\nChar string [10]=\"ББББББББ\"\ncout << (char *)memset (string1, 'c', 3) << endl;\nreturn 0;\n}","o":{"A":"БББcccccc","B":"cccБББББ","C":"cccБББccc","D":"ccccccБББ","E":"ББББББccc"},"c":["B"]},
+    {"n":26,"q":"Параметрлік циклды қолданғанда пайдаланатын оператор","o":{"A":"while","B":"case","C":"if","D":"else","E":"for"},"c":["E"]},
+    {"n":27,"q":"Сұрыптау жасау барысында берілген массив екі массивке бөлініп, әр қайсысы рекурсияны қолданып сұрыпталады, соңында екіге бөлінген сұрыпталған массивты i және j екі индекстің қолдануымен сол жағындағы және оң жағындағы ішкі массивтерден ең кіші элементті алып жаңа массивке салу арқылы біріктіреді. Бұл сұрыптау әдісінің атауы","o":{"A":"квадратты (squarsort)","B":"разрядтты (radixsort)","C":"қосу (margesort)","D":"жылдам (quicksort)","E":"көпіршікті (bubblesort)"},"c":["C"]},
+    {"n":28,"q":"Қабырғалар арқылы байланысқан төбелердің кез келген тізбегі","o":{"A":"жол","B":"бағыт","C":"ілмек","D":"төбе","E":"қабырға"},"c":["A"]},
+    {"n":29,"q":"Белгілі бір тапсырмаларды орындауға арналған программаның жеке дара бөлігі","o":{"A":"іздеу","B":"сұрыптау","C":"массив","D":"функциялар","E":"ерекшелеу"},"c":["D"]},
+    {"n":30,"q":"Элементті іздеу мен жою байланысқан тізімнің ұзындығына байланысты. Хеш-кестеден элементті іздеу және жою операциясының есептеу күрделілігі нашар жағдайда болады","o":{"A":"Θ(n)","B":"Θ(1)","C":"Θ(log n)","D":"Θ(cⁿ)","E":"Θ(n²)"},"c":["A"]}
+  ]
+},
+{
+  "id": "kzalg2", "lang": "kz", "subject": "Алгоритмдер және деректер құрылымы", "variant": 2,
+  "questions": [
+    {"n":1,"q":"Алгоритмдердің міндетті қасиеттерінің бірі","o":{"A":"түсіндірмелік","B":"анықталмағандық","C":"шексіздік","D":"дискреттілік","E":"үздіксіздік"},"c":["D"]},
+    {"n":2,"q":"Көптік таңдау құрылымы","o":{"A":"if","B":"do-while","C":"while-do","D":"if-else","E":"switch"},"c":["E"]},
+    {"n":3,"q":"C++ тілінде бағдарламаның негізгі бөлігі келтірілген. Нәтижесінде экранға шығатын жауап\ndouble x=3.5;\nint y;\nif(x==0) y=7*pow(x,3);\nelse y=2*pow(x,3);\ncout<<y;","o":{"A":"0","B":"85.75","C":"85","D":"75","E":"54"},"c":["C"]},
+    {"n":4,"q":"Префиксті декремент дұрыс жазылуы","o":{"A":"a--","B":"-=a","C":"a-=","D":"--a","E":"+=a"},"c":["D"]},
+    {"n":5,"q":"Постфиксті декремент дұрыс жазылуы","o":{"A":"-=a","B":"--a","C":"a++","D":"+=a","E":"a--"},"c":["E"]},
+    {"n":6,"q":"ЖӘНЕ логикалық операторының дұрыс жазылуы","o":{"A":"a||b","B":"a&&b","C":"a!","D":"a//b","E":"a<<b"},"c":["B"]},
+    {"n":7,"q":"S жолы бос болғанда true, ал бос болмағанда false қайтаратын жолдардағы әдіс","o":{"A":"S.substr()","B":"S.find()","C":"S.insert()","D":"S.size()","E":"S.empty()"},"c":["E"]},
+    {"n":8,"q":"#include <iostream>\nusing namespace std;\nint main()\n{int i = 25;\nif (i > 15) cout << \"i-дің мәні 15 -тен үлкен\";\nelse cout << \"i-дің мәні 15-тен кіші\";\nreturn 0;\nТармақталған алгоритмдік құрылымы нәтижесінде жауапқа шығатын өрнек","o":{"A":"i-дің мәні 15 -тен үлкен","B":"i-дің мәні 15-ке жуық","C":"i-дің мәні 15-ке тең","D":"i-дің мәні белгісіз","E":"i-дің мәні 15-тен кіші"},"c":["A"]},
+    {"n":9,"q":"Массивтерді сыртқы сұрыптау алгоритмі","o":{"A":"біріктіріп сұрыптау","B":"қосып сұрыптау","C":"шейкерлік сұрыптау","D":"көпіршікті сұрыптау","E":"кірістіріп сұрыптау"},"c":["A"]},
+    {"n":10,"q":"int func() функциясы қайтарады","o":{"A":"символ деректі","B":"мәтін деректі","C":"бүтін деректі","D":"бөлшек деректі","E":"логикалық деректі"},"c":["C"]},
+    {"n":11,"q":"f(n)=n! функцияларының дұрыс берілуі","o":{"A":"f(0)=1, f(n)=f(n - 1)+1","B":"f(0)=0, f(n)=f(n - 1)+2","C":"f(0)=1, f(n)=2n*f(n - 1)","D":"f(0)=1, f(n)=n*f(n - 1)","E":"f(0)=0, f(n)=f(n - 1)+1"},"c":["D"]},
+    {"n":12,"q":"printf() функциясының дұрыс жазылуы","o":{"A":"int a; printf(\"%c\", a);","B":"int a; printf(\"a=%s\", a);","C":"int a; printf(\"%s\", a);","D":"int a; printf(\"%d\", a);","E":"int a; printf(\"a=&i\", a);"},"c":["D"]},
+    {"n":13,"q":"Массивтегі іздеу алгоритмінің классификациясы","o":{"A":"шелл іздеуі","B":"таңдап іздеу","C":"кірістіріп іздеу","D":"екілік (бинарлы) іздеу","E":"квадраттық іздеу"},"c":["D"]},
+    {"n":14,"q":"2 3 17 7 8 9 1 4 6 9 2 3 1 18 тізбегі үшін табиғи біріктіріп сұрыптаудың бірінші этапы","o":{"A":"b=2 3 17 1 4 6 9 1 18 c=7 8 9 2 3 a= 2 3 7 8 9 17 1 2 3 4 6 9 1 18","B":"b=21 2 3 3 4 6 7 8 9 9 17 c=18 1 a= 1 1 2 2 3 3 4 6 7 8 9 9 17 18","C":"b=1 2 2 3 3 4 6 7 8 9 9 17 c=1 18 a= 1 18 2 2 3 3 4 6 7 8 9 9 17 1","D":"b=2 3 17 7 4 6 9 1 18 c= 1 8 9 2 3 a= 1 2 2 3 3 4 6 7 8 9 9 17 1 18","E":"b=2 3 7 8 9 17 1 18 c=1 2 3 4 6 9 a= 2 3 7 8 9 17 1 2 3 4 6 9 1 18"},"c":["A"]},
+    {"n":15,"q":"(6, 3, 2, 8, 1, 7, 4, 5) бастапқы тізбек үшін көпіршік әдісімен сұрыптау алгоритмінің бірінші қадамының нәтижесінде алынатын тізбек","o":{"A":"(1, 2, 3, 8, 6, 7, 4, 5)","B":"(3, 2, 8, 6, 7, 4, 5, 1)","C":"(3, 2, 6, 1, 7, 4, 5, 8)","D":"(2, 6, 3, 1, 4, 8, 5, 7)","E":"(6, 3, 2, 8, 1, 7, 4, 5)"},"c":["C"]},
+    {"n":16,"q":"Көпіршікті сұрыптау алгоритмінің уақыттық күрделілігі","o":{"A":"O(n³)","B":"O(n log n)","C":"O(n²)","D":"O(1)","E":"O(log n)"},"c":["C"]},
+    {"n":17,"q":"Алгоритм күрделілігінің өсу ретімен орналасқан нұсқалары","o":{"A":"O(N²), O(N), O(log N)","B":"O(1), O(N), O(N³)","C":"O(2N), O(N), O(1)","D":"O(N), O(1), O(N log N)","E":"O(N²), O(log N), O(N³)"},"c":["B"]},
+    {"n":18,"q":"O(log n) уақытта жұмыс істейтін алгоритм","o":{"A":"екі матрицаны көбейту алгоритмі","B":"сызықты іздеу алгоритмі","C":"көпіршікті сұрыптау алгоритмі","D":"бүтін санның тақ-жұптығын табу алгоритмі","E":"екілік іздеу алгоритмі"},"c":["E"]},
+    {"n":19,"q":"Бір байланыстырылған тізім анықтамасы","o":{"A":"бұл FILO принципі бойынша жұмыс істейтін мәліметтер құрылымы","B":"бұл дерек пен келесі және алдыңғы түйінге көрсеткіші бар мәліметтер құрылымы","C":"бұл LILO принципі бойынша жұмыс істейтін мәліметтер құрылымы","D":"бұл LIFO принципі бойынша жұмыс істейтін мәліметтер құрылымы","E":"бұл дерек пен келесі түйінге көрсеткіші бар мәліметтер құрылымы"},"c":["E"]},
+    {"n":20,"q":"C++ тілінде динамикалық бүтін типті массивті жариялаудың дұрыс жазылуы","o":{"A":"int* a = new int[n]","B":"int* a = new int*[n]","C":"int a = new int[n]","D":"int a[n]","E":"int* a = new int(n)"},"c":["A"]},
+    {"n":21,"q":"Стек әдістеріне жатпайтын функция","o":{"A":"pop()","B":"size()","C":"push()","D":"clear","E":"contains()"},"c":["E"]},
+    {"n":22,"q":"Хеш кестесінің анықтамасы","o":{"A":"хеш кестесі – типтері бірдей элементтерден тұратын деректер құрылымы","B":"хеш кестесі – әр-түрлі типті реттелген деректердің құрылымы","C":"хеш кестесі – FIFO принципі бойынша жұмыс істейтін деректер құрылымы","D":"хеш кестесі – өте жылдам іздеу мен қоюды қамтамасыздандыратын деректер құрылымы","E":"хеш кестесі – бір-бірімен байланысқан деректер құрылымы"},"c":["D"]},
+    {"n":23,"q":"Толтырылған массив ұяшығына кілтті хештеудің атауы","o":{"A":"бірігу","B":"коллизия","C":"ажырау","D":"қиылысу","E":"бөліну"},"c":["B"]},
+    {"n":24,"q":"Хеш кестесінде коллизиядан құтылу әдісі","o":{"A":"ашық адресациялау әдісі","B":"трапеция әдісі","C":"орамдар әдісі","D":"қадамдық бөлшектеу әдісі","E":"квадрат ортасы әдісі"},"c":["A"]},
+    {"n":25,"q":"AVL ағашында жою операциясының орындалу уақыты","o":{"A":"O(n³)","B":"O(n²)","C":"O(nlogn)","D":"O(logn)","E":"O(1)"},"c":["D"]},
+    {"n":26,"q":"20 түйіні бар толық екілік ағаш бар. тамыры 0 деңгейінде орналасқан болса 4 деңгейіндегі түйін саны","o":{"A":"0","B":"8","C":"1","D":"4","E":"5"},"c":["E"]},
+    {"n":27,"q":"Екілік іздеу ағашындағы қызылды-қаралы ағаш қасиеттерінің бірі","o":{"A":"түйіннің сол ішкі ағашының кілтінің мәні түйіннің кілтінің мәнінен үлкен болса","B":"барлық қызыл-қара ағаштың жапырақтары бір деңгейде орналасса","C":"түйіннің сол ішкі ағашының кілтінің мәні түйіннің кілтінің мәнінен кіші болса","D":"егер төбе қызыл, онда оның екі мұрагері де қара","E":"әрбір түйіннің ең болмағанда бір ішкі ағашы бос"},"c":["D"]},
+    {"n":28,"q":"Графтың түйінінің атауы","o":{"A":"мекенжай","B":"қабырға","C":"төбе","D":"нүкте","E":"жол"},"c":["C"]},
+    {"n":29,"q":"Барлық төбелік жұптар үшін ең қысқа жолдарды құру есебінде ең қысқа жол ізделеді","o":{"A":"бастапқы төбеден бастап бірнеше қабырға қашықтықтағы басқа шыңдарға дейін","B":"әр төбеден барлық басқа төбелерге дейін","C":"бастапқы төбеден бастап бір қабырға қашықтықтағы басқа шыңдарға дейін","D":"бастапқы төбеден басқа төбелерге дейін","E":"әр төбеден бастапқы төбеге дейін"},"c":["B"]},
+    {"n":30,"q":"Егер байланыспаған графтың төбелерінің әрқайсысы басқаларымен қабырғалармен жалғанған болса онда ол граф","o":{"A":"толық емес граф деп аталады","B":"гиперграф деп аталады","C":"шынжыр(тізбек) деп аталады","D":"толық граф деп аталады","E":"мультиграф деп аталады"},"c":["D"]}
+  ]
+}
+];
+
+/* ---------- state ---------- */
+let S = { test:null, qs:[], i:0, ans:{}, mode:'exam', shuffle:false, t0:0, timer:null, checked:{} };
+let LANG = 'ru';
+
+/* ---------- helpers ---------- */
+const $ = id => document.getElementById(id);
+const eq = (a,b) => a.length===b.length && a.every(x=>b.includes(x));
+const esc = s => s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const isDB = t => t.id.includes('db');
+const maxScore = t => isDB(t) ? 40 : 30;
+
+/* points for one question, per the rules */
+function pts(q, sel){
+  const c = q.c, isdb = S.test && isDB(S.test);
+  if(!sel || !sel.length) return 0;
+  if(!isdb) return (sel.length===1 && c.includes(sel[0])) ? 1 : 0;   // алгоритмы: 1 балл
+  if(sel.some(x=>!c.includes(x))) return 0;                          // есть неверный → 0
+  if(c.length===1) return sel.length===1 ? 2 : 0;                    // один верный: только он → 2
+  return eq(sel,c) ? 2 : 1;                                          // все → 2, часть → 1
+}
+
+/* ---------- theme ---------- */
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme')==='light' ? '' : 'light';
+  document.documentElement.setAttribute('data-theme', cur);
+  try{ localStorage.setItem('m094-theme', cur); }catch(e){}
+  $('thBtn').textContent = cur==='light' ? '☀️ Тема' : '🌙 Тема';
+}
+try{ if(localStorage.getItem('m094-theme')==='light') toggleTheme(); }catch(e){}
+
+/* ---------- home ---------- */
+function setMode(m){
+  S.mode=m;
+  $('mExam').className  = 'chip'+(m==='exam' ?' on':'');
+  $('mTrain').className = 'chip'+(m==='train'?' on':'');
+}
+function toggleShuffle(){ S.shuffle=!S.shuffle; $('mShuf').className='chip'+(S.shuffle?' on':''); }
+
+function setLang(l){
+  LANG=l;
+  $('lRu').className='chip'+(l==='ru'?' on':'');
+  $('lKz').className='chip'+(l==='kz'?' on':'');
+  renderHome();
+}
+
+function renderHome(){
+  const mk = t => `<button class="vcard" onclick="start('${t.id}')">
+      <b>${LANG==='kz'?'Нұсқа':'Вариант'} ${t.variant}</b>
+      <span>${t.questions.length} ${LANG==='kz'?'сұрақ · '+maxScore(t)+' балл дейін':'вопросов · до '+maxScore(t)+' баллов'}</span></button>`;
+  const list = DATA.filter(t=>t.lang===LANG);
+  const subjects = [...new Set(list.map(t=>t.subject))];
+  $('lists').innerHTML = subjects.map(s=>{
+    const ts = list.filter(t=>t.subject===s);
+    const n = ts[0].questions.length, m = maxScore(ts[0]);
+    const cap = LANG==='kz' ? `${n} сұрақ · ${m} балл` : `${n} вопросов · ${m} баллов`;
+    return `<h2>${s} <span class="badge">${cap}</span></h2><div class="grid">${ts.map(mk).join('')}</div>`;
+  }).join('');
+}
+
+function goHome(){
+  clearInterval(S.timer);
+  $('home').classList.remove('hide'); $('test').classList.add('hide'); $('res').classList.add('hide');
+  window.scrollTo(0,0);
+}
+
+/* ---------- test flow ---------- */
+function start(id){
+  S.test = DATA.find(t=>t.id===id);
+  S.qs = S.test.questions.slice();
+  if(S.shuffle) for(let i=S.qs.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [S.qs[i],S.qs[j]]=[S.qs[j],S.qs[i]]; }
+  S.i=0; S.ans={}; S.checked={}; S.t0=Date.now();
+  $('tTitle').textContent = `${S.test.subject} — ${S.test.lang==='kz'?'нұсқа':'вариант'} ${S.test.variant}`;
+  $('home').classList.add('hide'); $('res').classList.add('hide'); $('test').classList.remove('hide');
+  clearInterval(S.timer);
+  S.timer = setInterval(()=>{
+    const s = Math.floor((Date.now()-S.t0)/1000);
+    $('tTime').textContent = `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+  },1000);
+  render(); window.scrollTo(0,0);
+}
+function restart(){ start(S.test.id); }
+
+function render(){
+  const q = S.qs[S.i], sel = S.ans[q.n]||[], db = isDB(S.test);
+  const shown = S.mode==='train' && S.checked[q.n];
+
+  const kz = S.test.lang==='kz';
+  $('qNum').textContent = kz ? `${S.i+1}-сұрақ, барлығы ${S.qs.length}` : `Вопрос ${S.i+1} из ${S.qs.length}`;
+  $('qText').innerHTML = esc(q.q);
+  $('qHint').textContent = db
+    ? (kz ? 'Бір немесе бірнеше дұрыс жауабы бар (үш дұрыс жауаптан артық емес)' : 'Может быть несколько правильных ответов (не более трёх)')
+    : (kz ? 'Бір дұрыс жауап' : 'Один правильный ответ');
+  $('tProg').textContent = kz
+    ? `Жауап берілді ${Object.keys(S.ans).filter(k=>S.ans[k].length).length}/${S.qs.length}`
+    : `Отвечено ${Object.keys(S.ans).filter(k=>S.ans[k].length).length}/${S.qs.length}`;
+  $('tBar').style.width = ((S.i+1)/S.qs.length*100)+'%';
+
+  $('qOpts').innerHTML = Object.entries(q.o).map(([k,v])=>{
+    let cls='opt';
+    if(shown){
+      cls+=' lock';
+      if(q.c.includes(k)) cls+=' right';
+      else if(sel.includes(k)) cls+=' wrong';
+    } else if(sel.includes(k)) cls+=' sel';
+    return `<button class="${cls}" onclick="pick('${k}')"><span class="k">${k}</span><span>${esc(v)}</span></button>`;
+  }).join('');
+
+  $('bPrev').disabled = S.i===0;
+  $('bNext').classList.toggle('hide', S.i===S.qs.length-1);
+  $('bFin').classList.toggle('hide', S.i!==S.qs.length-1);
+
+  $('qMap').innerHTML = S.qs.map((qq,i)=>{
+    let c='';
+    if(S.mode==='train' && S.checked[qq.n]) c = pts(qq,S.ans[qq.n])>0 ? 'ok' : 'no';
+    else if((S.ans[qq.n]||[]).length) c='done';
+    if(i===S.i) c='cur';
+    return `<button class="${c}" onclick="jump(${i})">${i+1}</button>`;
+  }).join('');
+}
+
+function pick(k){
+  const q = S.qs[S.i];
+  if(S.mode==='train' && S.checked[q.n]) return;
+  let sel = (S.ans[q.n]||[]).slice();
+  if(isDB(S.test)){
+    if(sel.includes(k)) sel = sel.filter(x=>x!==k);
+    else { if(sel.length>=3) return; sel.push(k); }
+  } else {
+    sel = sel.includes(k) ? [] : [k];
+  }
+  S.ans[q.n]=sel;
+  if(S.mode==='train' && sel.length && !isDB(S.test)) S.checked[q.n]=true;
+  render();
+}
+
+function go(d){
+  const q = S.qs[S.i];
+  if(d>0 && S.mode==='train' && !S.checked[q.n] && (S.ans[q.n]||[]).length){ S.checked[q.n]=true; render(); return; }
+  S.i = Math.max(0, Math.min(S.qs.length-1, S.i+d)); render(); window.scrollTo(0,0);
+}
+function jump(i){ S.i=i; render(); window.scrollTo(0,0); }
+
+document.addEventListener('keydown',e=>{
+  if($('test').classList.contains('hide')) return;
+  if(e.key==='ArrowRight') go(1);
+  if(e.key==='ArrowLeft') go(-1);
+  const q=S.qs[S.i], keys=Object.keys(q.o);
+  const k=e.key.toUpperCase();
+  if(keys.includes(k)) pick(k);
+  const n=parseInt(e.key,10);
+  if(n>=1&&n<=9&&keys[n-1]) pick(keys[n-1]);
+});
+
+/* ---------- result ---------- */
+function finish(){
+  const left = S.qs.length - Object.keys(S.ans).filter(k=>S.ans[k].length).length;
+  if(left>0 && !confirm(`Без ответа ещё ${left} вопрос(ов). Завершить?`)) return;
+  clearInterval(S.timer);
+
+  let total=0, full=0, part=0, zero=0;
+  const rows = S.qs.slice().sort((a,b)=>a.n-b.n).map(q=>{
+    const sel=(S.ans[q.n]||[]).slice().sort(), p=pts(q,sel);
+    total+=p;
+    if(p===2 || (!isDB(S.test)&&p===1)) full++; else if(p===1) part++; else zero++;
+    const fmt = arr => arr.length ? arr.map(k=>`<b>${k}</b>) ${esc(q.o[k])}`).join('<br>') : '<i>нет ответа</i>';
+    return `<div class="rev">
+      <div class="hd">
+        <div class="qnum">Вопрос ${q.n}</div>
+        <div class="pt p${p>=2?2:p}">${p} ${p===1?'балл':(p===0?'баллов':'балла')}</div>
+      </div>
+      <p class="qt">${esc(q.q)}</p>
+      <div class="ans"><span class="${p>0?'g':'r'}">Ваш ответ:</span> ${fmt(sel)}</div>
+      <div class="ans"><span class="g">Правильно:</span> ${fmt(q.c.slice().sort())}</div>
+      ${q.note?`<div class="note">⚠ ${esc(q.note)}</div>`:''}
+    </div>`;
+  });
+
+  const max = maxScore(S.test), pc = Math.round(total/max*100);
+  const s = Math.floor((Date.now()-S.t0)/1000);
+  $('rTitle').textContent = `${S.test.subject} — ${S.test.lang==='kz'?'нұсқа':'вариант'} ${S.test.variant}`;
+  $('rScore').innerHTML = `${total} <span style="font-size:24px;color:var(--tx2)">/ ${max}</span>`;
+  $('rScore').style.color = pc>=70?'var(--ok)':(pc>=50?'var(--warn)':'var(--bad)');
+  $('rMark').textContent = `${pc}% · ${pc>=90?'отлично':pc>=70?'хорошо':pc>=50?'удовлетворительно':'нужно повторить'}`;
+  $('rStats').innerHTML =
+    `<div class="stat"><b>${full}</b><span>полностью верно</span></div>`+
+    (isDB(S.test)?`<div class="stat"><b>${part}</b><span>частично (1 балл)</span></div>`:'')+
+    `<div class="stat"><b>${zero}</b><span>без баллов</span></div>`+
+    `<div class="stat"><b>${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}</b><span>время</span></div>`;
+  $('rList').innerHTML = rows.join('');
+  $('test').classList.add('hide'); $('res').classList.remove('hide');
+  window.scrollTo(0,0);
+}
+
+renderHome();
+</script>
+</body>
+</html>
